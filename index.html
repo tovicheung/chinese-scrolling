@@ -6,8 +6,7 @@
 
 <!-- for some ungodly reason this p element prevents the toolbar in chrome mobile from hiding and stablizes scrolling,
 i have no idea why so here it stays -->
-<p id="hack"></p>
-
+<p style="height: 1px;"></p>
 
 <div id="scroller"></div>
 
@@ -19,7 +18,7 @@ i have no idea why so here it stays -->
     <button onclick="toggle_modal()"><span class="material-symbols-outlined">collections_bookmark</span></button>
 </div>
 
-<div class="modal" id="modal">
+<div id="modal">
     <p>選擇文章</p>
     <select name="parent" id="select_parent" onchange="select_parent_changed()">
         <option value="All">All</option>
