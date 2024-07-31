@@ -11,9 +11,14 @@
     <button onclick="reveal()"><span class="material-symbols-outlined">visibility</span></button>
     <button><span class="material-symbols-outlined">send</span></button>
     <button><span class="material-symbols-outlined">bar_chart</span></button>
-    <button onclick="parent_modal()"><span class="material-symbols-outlined">collections_bookmark</span></button>
+    <button onclick="modal()"><span class="material-symbols-outlined">collections_bookmark</span></button>
 </div>
-<div class="modal" id="parent-modal"></div>
+<div class="modal" id="modal">
+    <p>選擇文章</p>
+    <select name="parent" id="select_parent" onchange="select_parent_changed()">
+        <option value="All">All</option>
+    </select>
+</div>
 
 <script src="data.js"></script>
 <script src="main.js"></script>

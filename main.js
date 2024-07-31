@@ -44,8 +44,8 @@ function fullscreen() {
 
 }
 
-function parent_modal() {
-   const modal = document.getElementById("parent-modal");
+function modal() {
+   const modal = document.getElementById("modal");
    // console.log(modal.style.display);
    modal.style.display = modal.style.display == "none" || modal.style.display == "" ? "block" : "none";
 }
@@ -66,7 +66,7 @@ function reveal() {
 }
 
 function choose_question() {
-   if (filter_parent == null) {
+   if (filter_parent == null || filter_parent == "All") {
       return choice(QUESTIONS);
    }
    return choice(QUESTIONS.filter(q => q.parent == filter_parent));
@@ -112,14 +112,17 @@ function update() {
    }
 }
 
+function select_parent_changed() {
+   filter_parent = document.getElementById("select_parent").value;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+   const select_parent = document.getElementById("select_parent");
    parents.forEach(p => {
-      h4 = document.createElement("h4");
-      h4.innerText = p;
-      h4.onclick = () => {
-         filter_parent = p;
-      };
-      document.getElementById("parent-modal").appendChild(h4);
+      option = document.createElement("option");
+      option.value = p;
+      option.innerText = p;
+      select_parent.appendChild(option);
    })
 
 
