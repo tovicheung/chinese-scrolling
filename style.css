@@ -23,12 +23,19 @@
 }
 
 .scroller section h3 {
-    margin: 5%;
-    font-size: 6vw;
+    font-size: 7vw;
+}
+
+.scroller section h5 {
+    font-size: 3vw;
 }
 
 .blue {
     color: blue;
+}
+
+.red {
+    color: red;
 }
 
 #info {
@@ -45,12 +52,11 @@
     right: 0;
     display: flex;
     flex-direction: column;
-    padding: 30px;
-    gap: 30px;
+    padding: 40px;
+    gap: 60px;
 }
 
-.menu button {
-    height: 7vh;
+.menu > button {
     aspect-ratio: 1/1;
     border-radius: 99999px;
     background-color: transparent;
@@ -86,5 +92,26 @@
     'wght' 400,
     'GRAD' 0,
     'opsz' 24;
-    font-size: 100px !important;
+    font-size: 5vh !important;
+}
+
+#hack {
+    height: 1px;
+}
+
+.modal {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 80vw;
+    padding: 30px;
+    display: none;
+    z-index: 20;
+    background-color: lightgrey;
+}
+
+.modal > h4 {
+    margin-top: 40px;
+    margin-bottom: 40px;
+    font-size: 80;
 }

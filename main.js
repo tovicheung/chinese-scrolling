@@ -18,7 +18,9 @@
 //     }, timeout);
 // })
 
-var can_scroll = false;
+const queue = [];
+var showing_answer = false;
+var filter_parent = null;
 
 const QTYPE_TO_NAME = {
    0: "譯字",
@@ -26,20 +28,52 @@ const QTYPE_TO_NAME = {
    2: "問答",
 }
 
+const parents = [...new Set(QUESTIONS.map(q => q.parent))];
+
 function choice(arr) {
    return arr[Math.floor(Math.random() * arr.length)]
 }
 
-function reveal() {
-   can_scroll = true;
-   document.getElementById("container").children[0].children[2].style.opacity = 1;
-   if (container.children.length == 1) {
-      container.appendChild(makeScreen());
-   }
+function fullscreen() {
+   let doc = document.documentElement;
+   var request = doc.requestFullScreen
+           || doc.webkitRequestFullScreen
+           || doc.mozRequestFullScreen
+   ;
+   request.call(doc);
+
 }
 
-function makeScreen() {
-   q = choice(QUESTIONS);
+function parent_modal() {
+   const modal = document.getElementById("parent-modal");
+   // console.log(modal.style.display);
+   modal.style.display = modal.style.display == "none" || modal.style.display == "" ? "block" : "none";
+}
+
+function reveal() {
+   if (showing_answer) return;
+   showing_answer = true;
+   // [q] <a>
+   document.getElementById("container").children[0].children[2].style.opacity = 1;
+   // [a] <a>
+   document.getElementById("container").children[1].remove();
+   // [a]
+   if (document.getElementById("container").children.length == 1) {
+      new_question();
+      // [a] <q> <a>
+   }
+   update();
+}
+
+function choose_question() {
+   if (filter_parent == null) {
+      return choice(QUESTIONS);
+   }
+   return choice(QUESTIONS.filter(q => q.parent == filter_parent));
+}
+
+function new_question() {
+   q = choose_question();
    e = document.createElement("section")
 
    // header
@@ -57,23 +91,54 @@ function makeScreen() {
    
    answer = document.createElement("h3")
    answer.innerText = q.answer;
+   answer.classList.add("red");
    answer.style.opacity = 0;
    e.appendChild(answer);
 
-   return e;
+   ans = e.cloneNode(deep=true);
+   ans.children[2].style.opacity = 1;
+
+   // document.getElementById("container").appendChild(e);
+   // document.getElementById("container").appendChild(ans);
+
+   queue.push(e);
+   queue.push(ans);
+}
+
+function update() {
+   const container = document.getElementById("container");
+   while (container.children.length < 2) {
+      container.appendChild(queue.shift());
+   }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+   parents.forEach(p => {
+      h4 = document.createElement("h4");
+      h4.innerText = p;
+      h4.onclick = () => {
+         filter_parent = p;
+      };
+      document.getElementById("parent-modal").appendChild(h4);
+   })
+
+
+   document.body.style.overflow = 'hidden';
    const container = document.getElementById("container");
-   container.appendChild(makeScreen());
+   new_question();
+   update();
+   // [q] <a>
    
    container.addEventListener("scrollend", e => {
-      if (!can_scroll) return;
-      console.log(container.children[1].getBoundingClientRect());
-      // document.getElementById("info").innerText = container.children[1].getBoundingClientRect().y.toString();
-      if (container.children[1].getBoundingClientRect().y < 50) {
+      // if (!showing_answer) return;
+      // alert();
+      if (container.children[1].getBoundingClientRect().y < 100) {
+         // <q> [a]  or  <a> [q] <a>
          container.removeChild(container.children[0]);
-         can_scroll = false;
+         // [a] or [q] <a>
+         showing_answer = !showing_answer;
+         if (showing_answer) new_question(); // [a] <q> <a>
+         update();
       }
    })
 })
