@@ -18,51 +18,28 @@
 //     }, timeout);
 // })
 
-const queue = [];
-var showing_answer = false;
-var filter_parent = null;
 
-const QTYPE_TO_NAME = {
+// Variables
+
+
+const parents = [...new Set(QUESTIONS.map(q => q.parent))];
+const qtype_to_name = {
    0: "譯字",
    1: "資料",
    2: "問答",
 }
 
-const parents = [...new Set(QUESTIONS.map(q => q.parent))];
+const queue = [];
+
+var showing_answer = false;
+var filter_parent = null;
+
+
+// Logic
+
 
 function choice(arr) {
    return arr[Math.floor(Math.random() * arr.length)]
-}
-
-function fullscreen() {
-   let doc = document.documentElement;
-   var request = doc.requestFullScreen
-           || doc.webkitRequestFullScreen
-           || doc.mozRequestFullScreen
-   ;
-   request.call(doc);
-
-}
-
-function modal() {
-   const modal = document.getElementById("modal");
-   // console.log(modal.style.display);
-   modal.style.display = modal.style.display == "none" || modal.style.display == "" ? "block" : "none";
-}
-
-function reveal() {
-   if (showing_answer) return;
-   showing_answer = true;
-   // [q] <a>
-   document.getElementById("container").children[0].children[2].style.opacity = 1;
-   // [a] <a>
-   document.getElementById("container").children[1].remove();
-   // [a]
-   if (document.getElementById("container").children.length == 1) {
-      new_question();
-      // [a] <q> <a>
-   }
-   update();
 }
 
 function choose_question() {
@@ -72,13 +49,22 @@ function choose_question() {
    return choice(QUESTIONS.filter(q => q.parent == filter_parent));
 }
 
+function fullscreen() {
+   let doc = document.documentElement;
+   var request = doc.requestFullScreen
+           || doc.webkitRequestFullScreen
+           || doc.mozRequestFullScreen
+   ;
+   request.call(doc);
+}
+
 function new_question() {
    q = choose_question();
    e = document.createElement("section")
 
    // header
    header = document.createElement("h5");
-   header.innerText = q.parent + " - " + QTYPE_TO_NAME[q.type];
+   header.innerText = q.parent + " - " + qtype_to_name[q.type];
    e.appendChild(header)
 
    // content
@@ -98,23 +84,50 @@ function new_question() {
    ans = e.cloneNode(deep=true);
    ans.children[2].style.opacity = 1;
 
-   // document.getElementById("container").appendChild(e);
-   // document.getElementById("container").appendChild(ans);
-
    queue.push(e);
    queue.push(ans);
 }
 
 function update() {
-   const container = document.getElementById("container");
-   while (container.children.length < 2) {
-      container.appendChild(queue.shift());
+   // pushes questions from queue to scroller
+   const scroller = document.getElementById("scroller");
+   while (scroller.children.length < 2) {
+      scroller.appendChild(queue.shift());
    }
+}
+
+
+// Handlers
+
+
+function toggle_modal() {
+   const modal = document.getElementById("modal");
+   // console.log(modal.style.display);
+   modal.style.display = modal.style.display == "none" || modal.style.display == "" ? "block" : "none";
+}
+
+function reveal() {
+   if (showing_answer) return;
+   showing_answer = true;
+   // [q] <a>
+   document.getElementById("scroller").children[0].children[2].style.opacity = 1;
+   // [a] <a>
+   document.getElementById("scroller").children[1].remove();
+   // [a]
+   if (document.getElementById("scroller").children.length == 1) {
+      new_question();
+      // [a] <q> <a>
+   }
+   update();
 }
 
 function select_parent_changed() {
    filter_parent = document.getElementById("select_parent").value;
 }
+
+
+// Listeners
+
 
 document.addEventListener("DOMContentLoaded", () => {
    const select_parent = document.getElementById("select_parent");
@@ -127,17 +140,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
    document.body.style.overflow = 'hidden';
-   const container = document.getElementById("container");
+   const scroller = document.getElementById("scroller");
    new_question();
    update();
    // [q] <a>
    
-   container.addEventListener("scrollend", e => {
+   scroller.addEventListener("scrollend", e => {
       // if (!showing_answer) return;
       // alert();
-      if (container.children[1].getBoundingClientRect().y < 100) {
+      if (scroller.children[1].getBoundingClientRect().y < 100) {
          // <q> [a]  or  <a> [q] <a>
-         container.removeChild(container.children[0]);
+         scroller.removeChild(scroller.children[0]);
          // [a] or [q] <a>
          showing_answer = !showing_answer;
          if (showing_answer) new_question(); // [a] <q> <a>

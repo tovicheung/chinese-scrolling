@@ -4,14 +4,14 @@
     padding: 0;
 }
 
-.scroller {
+#scroller {
     height: 100%;
     width: 100%;
     overflow-y: scroll;
     scroll-snap-type: y mandatory;
 }
 
-.scroller section {
+#scroller section {
     scroll-snap-align: start;
     height: 100%;
     font-size: 30;
@@ -22,11 +22,11 @@
     padding-bottom: 25vh;
 }
 
-.scroller section h3 {
+#scroller section h3 {
     font-size: 7vw;
 }
 
-.scroller section h5 {
+#scroller section h5 {
     font-size: 3vw;
 }
 

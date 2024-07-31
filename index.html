@@ -4,15 +4,21 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
 <link rel="stylesheet" href="style.css">
 
+<!-- for some ungodly reason this p element prevents the toolbar in chrome mobile from hiding and stablizes scrolling,
+i have no idea why so here it stays -->
 <p id="hack"></p>
-<div class="scroller" id="container"></div>
+
+
+<div id="scroller"></div>
+
 <div class="menu">
     <button><span class="material-symbols-outlined">favorite</span></button>
     <button onclick="reveal()"><span class="material-symbols-outlined">visibility</span></button>
     <button><span class="material-symbols-outlined">send</span></button>
     <button><span class="material-symbols-outlined">bar_chart</span></button>
-    <button onclick="modal()"><span class="material-symbols-outlined">collections_bookmark</span></button>
+    <button onclick="toggle_modal()"><span class="material-symbols-outlined">collections_bookmark</span></button>
 </div>
+
 <div class="modal" id="modal">
     <p>選擇文章</p>
     <select name="parent" id="select_parent" onchange="select_parent_changed()">
