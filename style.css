@@ -98,25 +98,21 @@
 }
 
 /* mobile */
-/*@media only screen and (max-width: 600px) {*/
-/* desktop
+@media only screen and (max-width: 600px) {
+    #desktop-warn {
+        display: none;
+    }
+}
+
+/* desktop */
 @media only screen and not (max-width: 600px) {
-    .menu {
-        position: absolute;
-        z-index: 10;
-        bottom: 0;
+    #desktop-warn {
+        height: 100%;
         width: 100%;
-        display: flex;
-        flex-direction: row;
-        padding: 40px;
-        gap: 40px;
+        position: fixed;
+        left: 0;
+        top: 0;
+        background-color: white;
+        z-index: 999;
     }
-    
-    .menu button {
-        height: 7vh;
-        aspect-ratio: 1/1;
-        border-radius: 99999px;
-        background-color: transparent;
-        border-color: transparent;
-    }
-}*/
+}
