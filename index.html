@@ -10,11 +10,11 @@ i have no idea why so here it stays -->
 
 <div id="scroller"></div>
 
-<div class="menu">
+<div id="menu">
     <button><span class="material-symbols-outlined">favorite</span></button>
     <button onclick="reveal()"><span class="material-symbols-outlined">visibility</span></button>
     <button><span class="material-symbols-outlined">send</span></button>
-    <button><span class="material-symbols-outlined">bar_chart</span></button>
+    <button id="stats_button"><span class="material-symbols-outlined">bar_chart</span></button>
     <button onclick="toggle_modal()"><span class="material-symbols-outlined">collections_bookmark</span></button>
 </div>
 
@@ -23,6 +23,10 @@ i have no idea why so here it stays -->
     <select name="parent" id="select_parent" onchange="select_parent_changed()">
         <option value="All">All</option>
     </select>
+</div>
+
+<div id="stats">
+    <p id="stats_score">ABC</p>
 </div>
 
 <script src="data.js"></script>
