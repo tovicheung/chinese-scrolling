@@ -96,23 +96,3 @@
 .red {
     color: red;
 }
-
-/* mobile */
-@media only screen and (max-width: 600px) {
-    #desktop-warn {
-        display: none;
-    }
-}
-
-/* desktop */
-@media only screen and not (max-width: 600px) {
-    #desktop-warn {
-        height: 100%;
-        width: 100%;
-        position: fixed;
-        left: 0;
-        top: 0;
-        background-color: white;
-        z-index: 999;
-    }
-}

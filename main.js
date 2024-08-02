@@ -133,7 +133,7 @@ function select_parent_changed() {
 // Listeners
 
 
-var touching_stats = false;
+var showing_stats = false;
 
 document.addEventListener("DOMContentLoaded", () => {
     const select_parent = document.getElementById("select_parent");
@@ -152,7 +152,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // [q] <a>
 
     addEventListener("scroll", e => {
-        if (touching_stats) {
+        if (showing_stats) {
             e.stopPropagation();
             e.preventDefault();
         }
@@ -179,25 +179,50 @@ document.addEventListener("DOMContentLoaded", () => {
     const stats_button = document.getElementById("stats_button");
 
     function stats_stick(e) {
-        touch = e.touches[0];
-        stats.style.left = touch.pageX - stats.clientWidth;
-        stats.style.top = touch.pageY - stats.clientHeight / 2;
+        if (e.touches) {
+            touch = e.touches[0];
+            stats.style.left = touch.pageX - stats.clientWidth;
+            stats.style.top = touch.pageY - stats.clientHeight / 2;
+        } else {
+            stats.style.left = e.clientX - stats.clientWidth;
+            stats.style.top = e.clientY - stats.clientHeight / 2;
+        }
     }
 
     stats_button.addEventListener("touchstart", e => {
-        touching_stats = true;
+        showing_stats = true;
         stats.style.display = "block";
+        stats.style.paddingRight = "3cm";
+        document.getElementById("stats_score").innerText = score;
+        stats_stick(e);
+    });
+
+    stats_button.addEventListener("mousedown", e => {
+        showing_stats = true;
+        stats.style.display = "block";
+        stats.style.paddingRight = "0px";
         document.getElementById("stats_score").innerText = score;
         stats_stick(e);
     });
 
     addEventListener("touchmove", e => {
-        if (touching_stats) stats_stick(e);
+        if (showing_stats) stats_stick(e);
+    });
+
+    addEventListener("mousemove", e => {
+        if (showing_stats) stats_stick(e);
     });
     
     stats_button.addEventListener("touchend", e => {
-        if (touching_stats) {
-            touching_stats = false;
+        if (showing_stats) {
+            showing_stats = false;
+            stats.style.display = "none";
+        }
+    });
+    
+    addEventListener("mouseup", e => {
+        if (showing_stats) {
+            showing_stats = false;
             stats.style.display = "none";
         }
     });
