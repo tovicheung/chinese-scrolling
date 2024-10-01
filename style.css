@@ -4,6 +4,25 @@
     padding: 0;
 }
 
+body {
+    -ms-overflow-style: none;
+    background-color: #f8fafc;
+    color: #023047;
+    accent-color: #82d0cc;
+    font-family: Inter, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-sans;
+}
+
+fieldset {
+    padding: 15px;
+    overflow-inline: hidden;
+    margin-bottom: 30px;
+}
+
+fieldset > div {
+    display: inline;
+    margin: 10px;
+}
+
 #scroller {
     height: 100%;
     width: 100%;
@@ -11,7 +30,7 @@
     scroll-snap-type: y mandatory;
 }
 
-#scroller section {
+#scroller > section {
     scroll-snap-align: start;
     height: 100%;
     font-size: 30;
@@ -22,11 +41,11 @@
     padding-bottom: 25vh;
 }
 
-#scroller section h3 {
-    font-size: 7vw;
+#scroller > section > h3 {
+    font-size: 6vw;
 }
 
-#scroller section h5 {
+#scroller > section > h5 {
     font-size: 3vw;
 }
 
@@ -41,14 +60,30 @@
     gap: 60px;
 }
 
-#menu > button {
+button.icon {
     aspect-ratio: 1/1;
     border-radius: 99999px;
     background-color: transparent;
     border-color: transparent;
     user-select: none;
+    color: #023047;
 }
 
+button:hover {
+    cursor: pointer;
+}
+
+button:not(.icon) {
+    padding: 15px 25px;
+    border: 3px solid #023047;
+    border-radius: 9999px;
+    background-color: transparent;
+}
+
+button:not(.icon):hover {
+    color: white;
+    background-color: #023047;
+}
 
 .material-symbols-outlined {
     font-variation-settings:
@@ -61,16 +96,24 @@
 
 #modal {
     position: fixed;
-    bottom: 0;
     left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
     padding: 30px;
     display: none;
     z-index: 20;
-    background-color: lightgrey;
+    background-color: #edffe5;
 }
 
 #modal > * {
     font-size: 4vh;
+}
+
+#exit-modal {
+    bottom: 40px;
+    right: 40px;    
+    position: absolute;
 }
 
 #stats {
@@ -90,9 +133,9 @@
 }
 
 .blue {
-    color: blue;
+    color: #7F74DF;
 }
 
 .red {
-    color: red;
+    color: #ff4221;
 }

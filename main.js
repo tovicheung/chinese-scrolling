@@ -65,11 +65,11 @@ function new_question() {
 
     // header
     header = document.createElement("h5");
-    header.innerText = q.parent + " - " + qtype_to_name[q.type];
+    header.innerText = "〈" + q.parent + "〉" + qtype_to_name[q.type];
     e.appendChild(header)
 
     // content
-    // e.innerText = Date.now().toString();
+    
     main = document.createElement("h3");
     main.innerHTML = q.question.replace("。", "");
     e.appendChild(main);
@@ -138,10 +138,17 @@ var showing_stats = false;
 document.addEventListener("DOMContentLoaded", () => {
     const select_parent = document.getElementById("select_parent");
     parents.forEach(p => {
-        option = document.createElement("option");
-        option.value = p;
-        option.innerText = p;
-        select_parent.appendChild(option);
+        div = document.createElement("div");
+        input = document.createElement("input");
+        input.id = "parent-" + p;
+        input.type = "checkbox";
+        input.value = p;
+        div.appendChild(input);
+        label = document.createElement("label");
+        label.for = "parent-" + p;
+        label.innerText = p;
+        div.appendChild(label);
+        select_parent.appendChild(div);
     });
 
 
@@ -159,8 +166,6 @@ document.addEventListener("DOMContentLoaded", () => {
     })
     
     scroller.addEventListener("scrollend", e => {
-        // if (!showing_answer) return;
-        // alert();
         if (scroller.children[1].getBoundingClientRect().y < 100) {
             // <q> [a]  or  <a> [q] <a>
             scroller.removeChild(scroller.children[0]);
