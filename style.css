@@ -23,6 +23,10 @@ fieldset > div {
     margin: 10px;
 }
 
+fieldset > div > * {
+    cursor: pointer;
+}
+
 #scroller {
     height: 100%;
     width: 100%;

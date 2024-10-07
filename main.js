@@ -32,7 +32,7 @@ const qtype_to_name = {
 const queue = [];
 
 var showing_answer = false;
-var filter_parent = null;
+var allowed_parents = new Set(parents.slice());
 var score = 0;
 
 
@@ -44,10 +44,7 @@ function choice(arr) {
 }
 
 function choose_question() {
-    if (filter_parent == null || filter_parent == "All") {
-        return choice(QUESTIONS);
-    }
-    return choice(QUESTIONS.filter(q => q.parent == filter_parent));
+    return choice(QUESTIONS.filter(q => allowed_parents.has(q.parent)));
 }
 
 function fullscreen() {
@@ -101,10 +98,14 @@ function push_questions() {
 // Handlers
 
 
+function update_settings() {
+    allowed_parents = new Set([... document.querySelectorAll("fieldset div input[type = checkbox]")].filter(e => e.checked).map(e => e.value));
+}
+
 function toggle_modal() {
     const modal = document.getElementById("modal");
-    // console.log(modal.style.display);
     modal.style.display = modal.style.display == "none" || modal.style.display == "" ? "block" : "none";
+    update_settings();
 }
 
 function reveal() {
@@ -125,8 +126,11 @@ function reveal() {
     push_questions();
 }
 
-function select_parent_changed() {
-    filter_parent = document.getElementById("select_parent").value;
+function set_checkboxes(val) {
+    document.querySelectorAll("fieldset div input[type = checkbox]")
+    .forEach(
+        e => e.checked = val
+    )
 }
 
 
@@ -143,9 +147,10 @@ document.addEventListener("DOMContentLoaded", () => {
         input.id = "parent-" + p;
         input.type = "checkbox";
         input.value = p;
+        input.checked = true;
         div.appendChild(input);
         label = document.createElement("label");
-        label.for = "parent-" + p;
+        label.htmlFor = "parent-" + p;
         label.innerText = p;
         div.appendChild(label);
         select_parent.appendChild(div);
@@ -180,58 +185,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    update_settings();
 
-    const stats_button = document.getElementById("stats_button");
-
-    function stats_stick(e) {
-        if (e.touches) {
-            touch = e.touches[0];
-            stats.style.left = touch.pageX - stats.clientWidth;
-            stats.style.top = touch.pageY - stats.clientHeight / 2;
-        } else {
-            stats.style.left = e.clientX - stats.clientWidth;
-            stats.style.top = e.clientY - stats.clientHeight / 2;
-        }
-    }
-
-    stats_button.addEventListener("touchstart", e => {
-        showing_stats = true;
-        stats.style.display = "block";
-        stats.style.paddingRight = "3cm";
-        document.getElementById("stats_score").innerText = score;
-        stats_stick(e);
-    });
-
-    stats_button.addEventListener("mousedown", e => {
-        showing_stats = true;
-        stats.style.display = "block";
-        stats.style.paddingRight = "0px";
-        document.getElementById("stats_score").innerText = score;
-        stats_stick(e);
-    });
-
-    addEventListener("touchmove", e => {
-        if (showing_stats) stats_stick(e);
-    });
-
-    addEventListener("mousemove", e => {
-        if (showing_stats) stats_stick(e);
-    });
-    
-    stats_button.addEventListener("touchend", e => {
-        if (showing_stats) {
-            showing_stats = false;
-            stats.style.display = "none";
-        }
-    });
-    
-    addEventListener("mouseup", e => {
-        if (showing_stats) {
-            showing_stats = false;
-            stats.style.display = "none";
-        }
-    });
-
-    const stats = document.getElementById("stats");
-    // stats.getBoundingClientRect().y = stats_button.getBoundingClientRect().y;
 })
