@@ -5,13 +5,15 @@
 <style>
     #container {
         display: flex;
-        justify-content: left;
+        justify-content: center;
         align-items: center;
         height: 100%;
+        padding: 70px;
+        flex-direction: column;
     }
 
     #main {
-        margin: 70px;
+        width: 100%;
         font-size: 3vh;
         font-weight: bold;
         -webkit-touch-callout: none; /* iOS Safari */
@@ -21,12 +23,39 @@
         -ms-user-select: none; /* Internet Explorer/Edge */
         user-select: none;
     }
+
+    .bar-outer {
+        margin-bottom: 30px;
+        border-radius: 99px;
+        background-color: rgb(236, 98, 98);
+        width: 80vw;
+        height: 2vh;
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+    }
+
+    #bar-inner {
+        background-color: rgb(60, 194, 60);
+        border-radius: 99px;
+        width: 90%;
+        height: 100%;
+    }
+
+    .grow {
+        flex-grow: 2;
+    }
 </style>
 
 <div id="modal"></div>
 
 <div id="container">
-<p id="main"></p>
+    <div class="grow"></div>
+    <p id="main"></p>
+    <div class="grow"></div>
+<div class="bar-outer">
+    <div id="bar-inner"></div>
+</div>
 </div>
 
 <script src="texts.js"></script>
@@ -34,11 +63,28 @@
     let text = "嗚呼！以賂秦之地，封天下之謀臣；以事秦之心，禮天下之奇才；幷力西嚮，則吾恐秦人食之不得下嚥也。悲夫！有如此之勢，而為秦人積威之所劫，日削月割，以趨於亡。為國者無使為積威之所劫哉！";
     let index = 0; // index of first NOT revealed
     let running = false;
+    let interval = null;
+    // in ms
+    let full = 7000;
+    let time = 7000;
+    const FPS = 30;
 
     function start() {
         index = 0;
         running = true;
         document.getElementById("main").innerText = "";
+        tiem = full;
+        interval = setInterval(() => {
+            time -= 1000 / FPS
+            if (time < 0) return stop();
+            document.getElementById("bar-inner").style.width = `${time / full * 100}%`
+        }, 1000 / FPS);
+    }
+
+    function stop() {
+        running = false;
+        toggle_modal();
+        clearInterval(interval);
     }
 
     function update() {
@@ -56,16 +102,14 @@
             : "mousedown",
         () => {
             if (running) {
+                time += 1000;
+                if (time > full) time = full;
                 index++;
                 update();
+                if (index > text.length) stop();
             }
         }
-    )
-
-    addEventListener("dblclick", e => {
-        e.preventDefault();
-        e.stopPropagation();
-    })
+    );
     
     document.addEventListener("DOMContentLoaded", () => {
         let modal = document.getElementById("modal");
@@ -80,5 +124,5 @@
             modal.appendChild(button);
         }
         toggle_modal();
-    })
+    });
 </script>
