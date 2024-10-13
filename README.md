@@ -1,3 +1,3 @@
-study/flashcard app that helps me study chinese by doomscrolling
+for myself to study chinese
 
-url: chiscroll.netlify.app
+url: [chiscroll.netlify.app](https://chiscroll.netlify.app)
