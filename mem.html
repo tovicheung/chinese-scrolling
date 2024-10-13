@@ -63,6 +63,7 @@
     let text = "嗚呼！以賂秦之地，封天下之謀臣；以事秦之心，禮天下之奇才；幷力西嚮，則吾恐秦人食之不得下嚥也。悲夫！有如此之勢，而為秦人積威之所劫，日削月割，以趨於亡。為國者無使為積威之所劫哉！";
     let index = 0; // index of first NOT revealed
     let running = false;
+    let next_click_go_modal = false;
     let interval = null;
     // in ms
     let full = 7000;
@@ -72,23 +73,25 @@
     function start() {
         index = 0;
         running = true;
-        document.getElementById("main").innerText = "";
+        next_click_go_modal = false;
+        document.getElementById("main").innerHTML = "";
         tiem = full;
         interval = setInterval(() => {
             time -= 1000 / FPS
-            if (time < 0) return stop();
+            if (time < 0) return end();
             document.getElementById("bar-inner").style.width = `${time / full * 100}%`
         }, 1000 / FPS);
     }
 
-    function stop() {
+    function end() {
         running = false;
-        toggle_modal();
+        next_click_go_modal = true;
         clearInterval(interval);
+        main.innerHTML += `<span class="red">${text.substr(index)}</span>`;
     }
 
     function update() {
-        document.getElementById("main").innerText = text.substring(0, index);
+        document.getElementById("main").innerHTML = text.substring(0, index);
     }
 
     function toggle_modal() {
@@ -106,7 +109,10 @@
                 if (time > full) time = full;
                 index++;
                 update();
-                if (index > text.length) stop();
+                if (index > text.length) end();
+            } else if (next_click_go_modal) {
+                next_click_go_modal = false;
+                toggle_modal();
             }
         }
     );
