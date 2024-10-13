@@ -1,15 +1,15 @@
-
+<title>Chinese</title>
 <meta charset="utf-8">
 <link rel="stylesheet" href="style.css">
 
 <style>
     #container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
         height: 100%;
         padding: 70px;
+        display: flex;
         flex-direction: column;
+        justify-content: center;
+        align-items: center;
     }
 
     #main {
@@ -24,22 +24,21 @@
         user-select: none;
     }
 
-    .bar-outer {
-        margin-bottom: 30px;
-        border-radius: 99px;
-        background-color: rgb(236, 98, 98);
+    #bar-outer {
         width: 80vw;
         height: 2vh;
+        border-radius: 99px;
+        margin-bottom: 30px;
+        background-color: rgb(236, 98, 98);
         display: flex;
         flex-direction: row;
         justify-content: flex-start;
     }
 
     #bar-inner {
-        background-color: rgb(60, 194, 60);
-        border-radius: 99px;
-        width: 90%;
         height: 100%;
+        border-radius: 99px;
+        background-color: rgb(60, 194, 60);
     }
 
     .grow {
@@ -48,8 +47,8 @@
 
     input[type = range] {
         width: 70%;
-        margin: 30px;
         height: 3vh;
+        margin: 30px;
         background-color: red;
         outline: none;
     }
@@ -69,50 +68,56 @@
     <div class="grow"></div>
     <p id="main"></p>
     <div class="grow"></div>
-<div class="bar-outer">
-    <div id="bar-inner"></div>
-</div>
+    <div id="bar-outer">
+        <div id="bar-inner"></div>
+    </div>
 </div>
 
 <script src="texts.js"></script>
 <script>
-    let text = "嗚呼！以賂秦之地，封天下之謀臣；以事秦之心，禮天下之奇才；幷力西嚮，則吾恐秦人食之不得下嚥也。悲夫！有如此之勢，而為秦人積威之所劫，日削月割，以趨於亡。為國者無使為積威之所劫哉！";
-    let index = 0; // index of first NOT revealed
-    let running = false;
-    let next_click_go_modal = false;
+    const FPS = 30;
+    const MSPF = 1000 / FPS; // milliseconds per frame
+
+    // running state
+    let running = false; // will clicks reveal characters?
+    let text = "";
+    let index = 0; // index of the character to be revealed    
     let interval = null;
-    // in ms
+    let next_click_go_modal = false;
+    
+    // time in ms
     let full = 5000;
     let time = 5000;
-    const FPS = 30;
 
     function start() {
-        index = 0;
-        running = true;
-        next_click_go_modal = false;
         document.getElementById("main").innerHTML = "";
-        full = parseInt(document.getElementById("secs").innerText.replace("s", "")) * 1000;
-        time = full;
+
+        running = true;
+        index = 0;
         interval = setInterval(() => {
-            time -= 1000 / FPS
+            time -= MSPF
             if (time < 0) return end();
             document.getElementById("bar-inner").style.width = `${time / full * 100}%`
-        }, 1000 / FPS);
+        }, MSPF);
+        next_click_go_modal = false;
+        
+        time = full = parseInt(document.getElementById("secs").innerText.replace("s", "")) * 1000;
     }
 
     function end() {
         running = false;
-        next_click_go_modal = true;
         clearInterval(interval);
-        main.innerHTML += `<span class="red">${text.substr(index)}</span>`;
+        next_click_go_modal = true;
+
+        document.getElementById("main").innerHTML += `<span class="red">${text.substr(index)}</span>`;
     }
 
-    function update() {
+    function update_char() {
         document.getElementById("main").innerHTML = text.substring(0, index);
     }
 
     function toggle_modal() {
-        const modal = document.getElementById("modal");
+        let modal = document.getElementById("modal");
         modal.style.display = modal.style.display == "none" || modal.style.display == "" ? "block" : "none";
     }
 
@@ -125,7 +130,7 @@
                 time += 1000;
                 if (time > full) time = full;
                 index++;
-                update();
+                update_char();
                 if (index > text.length) end();
             } else if (next_click_go_modal) {
                 next_click_go_modal = false;
