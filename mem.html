@@ -1,0 +1,84 @@
+
+<meta charset="utf-8">
+<link rel="stylesheet" href="style.css">
+
+<style>
+    #container {
+        display: flex;
+        justify-content: left;
+        align-items: center;
+        height: 100%;
+    }
+
+    #main {
+        margin: 70px;
+        font-size: 3vh;
+        font-weight: bold;
+        -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Safari */
+        -khtml-user-select: none; /* Konqueror HTML */
+        -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+        user-select: none;
+    }
+</style>
+
+<div id="modal"></div>
+
+<div id="container">
+<p id="main"></p>
+</div>
+
+<script src="texts.js"></script>
+<script>
+    let text = "嗚呼！以賂秦之地，封天下之謀臣；以事秦之心，禮天下之奇才；幷力西嚮，則吾恐秦人食之不得下嚥也。悲夫！有如此之勢，而為秦人積威之所劫，日削月割，以趨於亡。為國者無使為積威之所劫哉！";
+    let index = 0; // index of first NOT revealed
+    let running = false;
+
+    function start() {
+        index = 0;
+        running = true;
+        document.getElementById("main").innerText = "";
+    }
+
+    function update() {
+        document.getElementById("main").innerText = text.substring(0, index);
+    }
+
+    function toggle_modal() {
+        const modal = document.getElementById("modal");
+        modal.style.display = modal.style.display == "none" || modal.style.display == "" ? "block" : "none";
+    }
+
+    addEventListener(
+        window.matchMedia("(any-hover: none)").matches
+            ? "touchstart" // no hovering = no mouse
+            : "mousedown",
+        () => {
+            if (running) {
+                index++;
+                update();
+            }
+        }
+    )
+
+    addEventListener("dblclick", e => {
+        e.preventDefault();
+        e.stopPropagation();
+    })
+    
+    document.addEventListener("DOMContentLoaded", () => {
+        let modal = document.getElementById("modal");
+        for ([key, value] of Object.entries(TEXTS)) {
+            button = document.createElement("button")
+            button.innerText = key;
+            button.onclick = e => {
+                text = TEXTS[e.target.innerText];
+                toggle_modal();
+                start();
+            }
+            modal.appendChild(button);
+        }
+        toggle_modal();
+    })
+</script>

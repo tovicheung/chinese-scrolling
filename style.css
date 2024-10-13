@@ -2,6 +2,7 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    touch-action: manipulation;
 }
 
 body {
@@ -27,6 +28,11 @@ fieldset > div > * {
     cursor: pointer;
 }
 
+fieldset > div > input[type = checkbox] {
+    transform: scale(2);
+    width: 30px;
+}
+
 #scroller {
     height: 100%;
     width: 100%;
@@ -46,11 +52,11 @@ fieldset > div > * {
 }
 
 #scroller > section > h3 {
-    font-size: 6vw;
+    font-size: 7vw;
 }
 
 #scroller > section > h5 {
-    font-size: 3vw;
+    font-size: 4vw;
 }
 
 #menu {
@@ -82,6 +88,7 @@ button:not(.icon) {
     border: 3px solid #023047;
     border-radius: 9999px;
     background-color: transparent;
+    margin: 10px;
 }
 
 button:not(.icon):hover {
@@ -111,7 +118,7 @@ button:not(.icon):hover {
 }
 
 #modal > * {
-    font-size: 4vh;
+    font-size: 50px;
 }
 
 #exit-modal {
