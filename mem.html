@@ -45,9 +45,25 @@
     .grow {
         flex-grow: 2;
     }
+
+    input[type = range] {
+        width: 70%;
+        margin: 30px;
+        height: 3vh;
+        background-color: red;
+        outline: none;
+    }
 </style>
 
-<div id="modal"></div>
+<div id="modal">
+    <h5>Timer:</h5>
+    <div style="display: flex; flex-direction: row;">
+        <input type="range" min="5" max="10" value="7" oninput="document.getElementById('secs').innerText = this.value + 's'">
+        <h5 id="secs">7s</h5>
+    </div>
+    <br>
+    <h5>Select text:</h5>
+</div>
 
 <div id="container">
     <div class="grow"></div>
@@ -75,6 +91,7 @@
         running = true;
         next_click_go_modal = false;
         document.getElementById("main").innerHTML = "";
+        full = parseInt(document.getElementById("secs").innerText.replace("s", "")) * 1000;
         time = full;
         interval = setInterval(() => {
             time -= 1000 / FPS
