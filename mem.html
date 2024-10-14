@@ -128,6 +128,8 @@
         time = full = parseInt(document.getElementById("secs").innerText.replace("s", "")) * 1000;
 
         document.body.requestFullscreen();
+
+        window.location.href = "#runner";
     }
 
     function end() {
@@ -210,4 +212,13 @@
         }
         toggle_modal();
     });
+
+    window.onhashchange = () => {
+        if (window.location.hash == "") {
+            end();
+            next_click_go_modal = false;
+            document.getElementById("bar-inner").innerText = "";
+            toggle_modal();
+        }
+    }
 </script>
