@@ -5,7 +5,7 @@
 <style>
     #container {
         height: 100%;
-        padding: 70px;
+        padding: 7vw;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -52,9 +52,28 @@
         background-color: red;
         outline: none;
     }
+
+    #modal2 {
+        left: 0;
+        top: 0;
+        width: 100%;
+        padding: 30px;
+        display: none;
+        z-index: 20;
+        background-color: #edffe5;
+    }
+
+    #modal2 > * {
+        font-size: 50px;
+    }
+
+    hr {
+        border: 1px solid gray;
+        margin: 10px;
+    }
 </style>
 
-<div id="modal">
+<div id="modal2">
     <h5>Timer:</h5>
     <div style="display: flex; flex-direction: row;">
         <input type="range" min="5" max="10" value="7" oninput="document.getElementById('secs').innerText = this.value + 's'">
@@ -102,6 +121,8 @@
         next_click_go_modal = false;
         
         time = full = parseInt(document.getElementById("secs").innerText.replace("s", "")) * 1000;
+
+        document.body.requestFullscreen();
     }
 
     function end() {
@@ -117,8 +138,16 @@
     }
 
     function toggle_modal() {
-        let modal = document.getElementById("modal");
-        modal.style.display = modal.style.display == "none" || modal.style.display == "" ? "block" : "none";
+        let modal = document.getElementById("modal2");
+        let container = document.getElementById("container");
+        if (modal.style.display == "none" || modal.style.display == "") {
+            modal.style.display = "block";
+            container.style.display = "none";
+            document.exitFullscreen();
+        } else {
+            modal.style.display = "none";
+            container.style.display = "flex";
+        }
     }
 
     addEventListener(
@@ -140,8 +169,14 @@
     );
     
     document.addEventListener("DOMContentLoaded", () => {
-        let modal = document.getElementById("modal");
+        let modal = document.getElementById("modal2");
+        let last_prefix = "";
         for ([key, value] of Object.entries(TEXTS)) {
+            let prefix = key.split("-")[0];
+            if (prefix != last_prefix) {
+                last_prefix = prefix;
+                modal.appendChild(document.createElement("hr"));
+            }
             button = document.createElement("button")
             button.innerText = key;
             button.onclick = e => {

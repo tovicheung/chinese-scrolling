@@ -13,6 +13,10 @@ body {
     font-family: Inter, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-sans;
 }
 
+body::backdrop {
+    background-color: #f8fafc;
+}
+
 fieldset {
     padding: 15px;
     overflow-inline: hidden;
