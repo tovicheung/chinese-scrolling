@@ -41,6 +41,10 @@
         background-color: rgb(60, 194, 60);
     }
 
+    #bar-inner.waiting {
+        background-color: rgb(47, 181, 234)
+    }
+
     .grow {
         flex-grow: 2;
     }
@@ -109,15 +113,12 @@
     let time = 5000;
 
     function start() {
-        document.getElementById("main").innerHTML = "";
+        document.getElementById("main").innerHTML = "<span style='color: grey;'>Click to start ...</span>";
+        document.getElementById("bar-inner").style.width = "100%";
+        document.getElementById("bar-inner").classList.add("waiting");
 
         running = true;
         index = 0;
-        interval = setInterval(() => {
-            time -= MSPF
-            if (time < 0) return end();
-            document.getElementById("bar-inner").style.width = `${time / full * 100}%`
-        }, MSPF);
         next_click_go_modal = false;
         
         time = full = parseInt(document.getElementById("secs").innerText.replace("s", "")) * 1000;
@@ -128,9 +129,11 @@
     function end() {
         running = false;
         clearInterval(interval);
+        interval = null;
         next_click_go_modal = true;
 
         document.getElementById("main").innerHTML += `<span class="red">${text.substr(index)}</span>`;
+        document.getElementById("bar-inner").classList.add("waiting");
     }
 
     function update_char() {
@@ -156,6 +159,15 @@
             : "mousedown",
         () => {
             if (running) {
+                if (interval == null) {
+                    // first click
+                    document.getElementById("bar-inner").classList.remove("waiting");
+                    interval = setInterval(() => {
+                        time -= MSPF
+                        if (time < 0) return end();
+                        document.getElementById("bar-inner").style.width = `${time / full * 100}%`;
+                    }, MSPF);
+                }
                 time += 1000;
                 if (time > full) time = full;
                 index++;
