@@ -195,19 +195,20 @@
 
         let modal = document.getElementById("modal2");
         let last_prefix = "";
-        for ([key, value] of Object.entries(TEXTS)) {
+        for (key in TEXTS) {
             let prefix = key.split("-")[0];
             if (prefix != last_prefix) {
                 last_prefix = prefix;
                 modal.appendChild(document.createElement("hr"));
             }
-            button = document.createElement("button")
+            button = document.createElement("button");
             button.innerText = key;
             button.onclick = e => {
                 text = TEXTS[e.target.innerText];
                 toggle_modal();
                 start();
-            }
+            };
+            button.ondblclick = e => alert(e);
             modal.appendChild(button);
         }
         toggle_modal();

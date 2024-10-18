@@ -19,6 +19,13 @@
 // })
 
 
+// quick redirect
+
+if (window.location.hash == "") {
+    window.location.href = "mem.html";
+}
+
+
 // Variables
 
 
