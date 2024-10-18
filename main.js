@@ -150,21 +150,28 @@ document.addEventListener("DOMContentLoaded", () => {
     const select_parent = document.getElementById("select_parent");
     parents.forEach(p => {
         div = document.createElement("div");
-        input = document.createElement("input");
-        input.id = "parent-" + p;
-        input.type = "checkbox";
-        input.value = p;
-        input.checked = true;
+
+        let input = Object.assign(
+            document.createElement("input"),
+            {
+                id: "parent-" + p,
+                type: "checkbox",
+                value: p,
+                checked: true,
+            }
+        )
         div.appendChild(input);
+
         label = document.createElement("label");
         label.htmlFor = "parent-" + p;
         label.innerText = p;
         div.appendChild(label);
+
         select_parent.appendChild(div);
     });
 
 
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = "hidden";
     const scroller = document.getElementById("scroller");
     new_question();
     push_questions();
@@ -194,4 +201,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
     update_settings();
 
-})
+});

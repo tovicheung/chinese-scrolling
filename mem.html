@@ -139,6 +139,7 @@
         next_click_go_modal = true;
 
         document.getElementById("main").innerHTML += `<span class="red">${text.substr(index)}</span>`;
+        document.getElementById("bar-inner").style.width = "100%";
         document.getElementById("bar-inner").classList.add("waiting");
         document.getElementById("bar-inner").innerText = "Done";
     }
@@ -201,15 +202,20 @@
                 last_prefix = prefix;
                 modal.appendChild(document.createElement("hr"));
             }
-            button = document.createElement("button");
-            button.innerText = key;
-            button.onclick = e => {
-                text = TEXTS[e.target.innerText];
-                toggle_modal();
-                start();
-            };
-            button.ondblclick = e => alert(e);
-            modal.appendChild(button);
+            modal.appendChild(
+                Object.assign(
+                    document.createElement("button"),
+                    {
+                        innerText: key,
+                        onclick: e => {
+                            text = TEXTS[e.target.innerText];
+                            toggle_modal();
+                            start();
+                        },
+                        ondblclick: e => alert()
+                    }
+                )
+            )
         }
         toggle_modal();
     });
