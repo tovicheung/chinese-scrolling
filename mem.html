@@ -1,173 +1,184 @@
-<title>Chinese</title>
-<meta charset="utf-8">
-<link rel="stylesheet" href="styles/global.css">
+<head>
+    <title>Chinese</title>
+    <meta charset="utf-8">
+    <meta name="description" content="十二篇範文">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/global.css">
 
-<style>
-    #container {
-        height: 100%;
-        padding: 7vw;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-    }
+    <style>
 
-    #main {
-        width: 100%;
-        font-size: 3vh;
-        font-weight: bold;
-        -webkit-touch-callout: none; /* iOS Safari */
-        -webkit-user-select: none; /* Safari */
-        -khtml-user-select: none; /* Konqueror HTML */
-        -moz-user-select: none; /* Old versions of Firefox */
-        -ms-user-select: none; /* Internet Explorer/Edge */
-        user-select: none;
-    }
-
-    #bar-outer {
-        width: 80vw;
-        height: 2vh;
-        border-radius: 99px;
-        margin-bottom: 15px;
-        background-color: rgb(236, 98, 98);
-        display: flex;
-        flex-direction: row;
-        justify-content: flex-start;
-    }
-
-    #bar-inner {
-        height: 100%;
-        border-radius: 99px;
-        background-color: rgb(60, 194, 60);
-        text-align: center;
-        color: white;
-        font-weight: bold;
-        font-size: 70%;
-    }
-
-    #bar-inner.waiting {
-        background-color: rgb(47, 181, 234)
-    }
-
-    .grow {
-        flex-grow: 2;
-    }
-
-    input[type = range] {
-        width: 70%;
-        height: 3vh;
-        margin: 30px;
-        background-color: red;
-        outline: none;
-    }
-
-    #modal2 {
-        left: 0;
-        top: 0;
-        width: 100%;
-        padding: 30px;
-        display: none;
-        z-index: 20;
-        background-color: #edffe5;
-    }
-
-    #modal2 > * {
-        font-size: 50px;
-    }
-
-    hr {
-        border: 1px solid gray;
-        margin: 10px;
-    }
-</style>
-
-<div id="modal2">
-    <h5>Timer:</h5>
-    <div style="display: flex; flex-direction: row;">
-        <input type="range" min="5" max="10" value="7" oninput="document.getElementById('secs').innerText = this.value + 's'">
-        <h5 id="secs">7s</h5>
-    </div>
-    <br>
-    <h5>Select text:</h5>
-</div>
-
-<div id="container">
-    <div class="grow"></div>
-    <p id="main"></p>
-    <div class="grow"></div>
-    <div id="bar-outer">
-        <div id="bar-inner"></div>
-    </div>
-</div>
-
-<script src="data/texts.js"></script>
-<script>
-    const FPS = 30;
-    const MSPF = 1000 / FPS; // milliseconds per frame
-
-    // running state
-    let running = false; // will clicks reveal characters?
-    let text = "";
-    let index = 0; // index of the character to be revealed    
-    let interval = null;
-    let next_click_go_modal = false;
-    
-    // time in ms
-    let full = 5000;
-    let time = 5000;
-
-    function start() {
-        document.getElementById("main").innerHTML = "<span style='color: grey;'>Click to start ...</span>";
-        document.getElementById("bar-inner").style.width = "100%";
-        document.getElementById("bar-inner").classList.add("waiting");
-
-        running = true;
-        index = 0;
-        next_click_go_modal = false;
-        
-        time = full = parseInt(document.getElementById("secs").innerText.replace("s", "")) * 1000;
-
-        document.body.requestFullscreen();
-
-        window.location.href = "#runner";
-    }
-
-    function end() {
-        running = false;
-        clearInterval(interval);
-        interval = null;
-        next_click_go_modal = true;
-
-        document.getElementById("main").innerHTML += `<span class="red">${text.substr(index)}</span>`;
-        document.getElementById("bar-inner").style.width = "100%";
-        document.getElementById("bar-inner").classList.add("waiting");
-        document.getElementById("bar-inner").innerText = "Done";
-    }
-
-    function update_char() {
-        document.getElementById("main").innerHTML = text.substring(0, index);
-    }
-
-    function toggle_modal() {
-        let modal = document.getElementById("modal2");
-        let container = document.getElementById("container");
-        if (modal.style.display == "none" || modal.style.display == "") {
-            modal.style.display = "block";
-            container.style.display = "none";
-            document.exitFullscreen();
-        } else {
-            modal.style.display = "none";
-            container.style.display = "flex";
+        #container {
+            height: 100%;
+            padding: 7vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
-    }
 
-    addEventListener(
-        window.matchMedia("(any-hover: none)").matches
-            ? "touchstart" // no hovering = no mouse
-            : "mousedown",
-        () => {
-            if (running) {
-                if (interval == null) {
+        #main {
+            width: 100%;
+            font-size: 3vh;
+            font-weight: bold;
+            -webkit-touch-callout: none; /* iOS Safari */
+            -webkit-user-select: none; /* Safari */
+            -khtml-user-select: none; /* Konqueror HTML */
+            -moz-user-select: none; /* Old versions of Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none;
+        }
+
+        #bar-outer {
+            width: 80vw;
+            height: 2vh;
+            border-radius: 99px;
+            margin-bottom: 15px;
+            background-color: rgb(236, 98, 98);
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-start;
+        }
+
+        #bar-inner {
+            height: 100%;
+            border-radius: 99px;
+            background-color: rgb(60, 194, 60);
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            font-size: 70%;
+        }
+
+        #bar-inner.waiting {
+            background-color: rgb(47, 181, 234)
+        }
+
+        .grow {
+            flex-grow: 2;
+        }
+
+        input[type = range] {
+            width: 70%;
+            height: 3vh;
+            margin: 30px;
+            background-color: red;
+            outline: none;
+        }
+
+        #modal2 {
+            left: 0;
+            top: 0;
+            width: 100%;
+            padding: 30px;
+            display: none;
+            z-index: 20;
+            background-color: #edffe5;
+        }
+
+        #modal2 > * {
+            font-size: 50px;
+        }
+
+        hr {
+            border: 1px solid gray;
+            margin: 10px;
+        }
+
+    </style>
+</head>
+
+<body>
+    <!-- Modal -->
+    <div id="modal2">
+        <h5>Timer:</h5>
+        <div style="display: flex; flex-direction: row;">
+            <input type="range" min="5" max="10" value="7" oninput="document.getElementById('secs').innerText = this.value + 's'">
+            <h5 id="secs">7s</h5>
+        </div>
+        <br>
+        <h5>Select text:</h5><span style="font-size: 30px; font-style: italic;">long press / right click to view full text</span>
+    </div>
+
+    <!-- Main runner -->
+    <div id="container">
+        <div class="grow"></div>
+        <p id="main"></p>
+        <div class="grow"></div>
+        <div id="bar-outer">
+            <div id="bar-inner"></div>
+        </div>
+    </div>
+
+    <script src="data/texts.js"></script>
+    <script>
+
+        const FPS = 30;
+        const MSPF = 1000 / FPS; // milliseconds per frame
+
+        // running state
+        let running = false; // will clicks reveal characters?
+        let text = "";
+        let index = 0; // index of the character to be revealed    
+        let interval = null;
+        let bar_goes_modal = false;
+        
+        // time in ms
+        let full = 5000;
+        let time = 5000;
+
+        function start() {
+            document.getElementById("main").innerHTML = "<span style='color: grey;'>Click to start ...</span>";
+            document.getElementById("bar-inner").style.width = "100%";
+            document.getElementById("bar-inner").classList.add("waiting");
+
+            running = true;
+            index = 0;
+            bar_goes_modal = false;
+            
+            time = full = parseInt(document.getElementById("secs").innerText.replace("s", "")) * 1000;
+
+            document.body.requestFullscreen();
+
+            window.location.href = "#runner";
+        }
+
+        function end(red = true) {
+            running = false;
+            clearInterval(interval);
+            interval = null;
+            bar_goes_modal = true;
+
+            document.getElementById("main").innerHTML = text.substring(0, index) + `<span class="${red ? "red" : ""}">${text.substr(index)}</span>`;
+            document.getElementById("bar-inner").style.width = "100%";
+            document.getElementById("bar-inner").classList.add("waiting");
+            document.getElementById("bar-inner").innerText = "Done";
+        }
+
+        function advance() {
+            index++;
+            document.getElementById("main").innerHTML = text.substring(0, index);
+            if (index >= text.length) end();
+        }
+
+        function show_modal() {
+            document.getElementById("modal2").style.display = "block";
+            document.getElementById("container").style.display = "none";
+            document.exitFullscreen();
+        }
+
+        function hide_modal() {
+            document.getElementById("modal2").style.display = "none";
+            document.getElementById("container").style.display = "flex";
+        }
+
+        addEventListener(
+            window.matchMedia("(any-hover: none)").matches
+                ? "touchstart" // no hovering = no mouse
+                : "mousedown",
+            () => {
+                if (!running) return
+                
+                if (interval === null) {
                     // first click
                     document.getElementById("bar-inner").classList.remove("waiting");
                     interval = setInterval(() => {
@@ -176,56 +187,66 @@
                         document.getElementById("bar-inner").style.width = `${time / full * 100}%`;
                     }, MSPF);
                 }
-                time += 1000;
-                if (time > full) time = full;
-                index++;
-                update_char();
-                if (index > text.length) end();
+                
+                time = Math.min(time + 1000, full);
+                advance();
             }
-        }
-    );
-    
-    document.addEventListener("DOMContentLoaded", () => {
-        document.getElementById("bar-outer").addEventListener("click", () => {
-            if (next_click_go_modal) {
-                document.getElementById("bar-inner").innerText = "";
-                next_click_go_modal = false;
-                toggle_modal();
+        );
+        
+        document.addEventListener("DOMContentLoaded", () => {
+
+            // bar click listener
+
+            document.getElementById("bar-inner").onclick = ("click", () => {
+                if (bar_goes_modal) {
+                    document.getElementById("bar-inner").innerText = "";
+                    bar_goes_modal = false;
+                    show_modal();
+                }
+            });
+
+            // set up texts
+
+            let modal = document.getElementById("modal2");
+            let last_prefix = "";
+            for (key in TEXTS) {
+                let prefix = key.split("-")[0];
+                if (prefix != last_prefix) {
+                    last_prefix = prefix;
+                    modal.appendChild(document.createElement("hr"));
+                }
+                modal.appendChild(
+                    Object.assign(
+                        document.createElement("button"),
+                        {
+                            innerText: key,
+                            onclick: e => {
+                                text = TEXTS[e.target.innerText];
+                                hide_modal();
+                                start();
+                            },
+                            oncontextmenu: e => {
+                                e.preventDefault();
+                                text = TEXTS[e.target.innerText];
+                                hide_modal();
+                                start();
+                                end(false);
+                            }
+                        }
+                    )
+                );
             }
+            show_modal();
         });
 
-        let modal = document.getElementById("modal2");
-        let last_prefix = "";
-        for (key in TEXTS) {
-            let prefix = key.split("-")[0];
-            if (prefix != last_prefix) {
-                last_prefix = prefix;
-                modal.appendChild(document.createElement("hr"));
+        window.onhashchange = () => {
+            if (window.location.hash == "") {
+                end();
+                bar_goes_modal = false;
+                document.getElementById("bar-inner").innerText = "";
+                show_modal();
             }
-            modal.appendChild(
-                Object.assign(
-                    document.createElement("button"),
-                    {
-                        innerText: key,
-                        onclick: e => {
-                            text = TEXTS[e.target.innerText];
-                            toggle_modal();
-                            start();
-                        },
-                        ondblclick: e => alert()
-                    }
-                )
-            )
-        }
-        toggle_modal();
-    });
-
-    window.onhashchange = () => {
-        if (window.location.hash == "") {
-            end();
-            next_click_go_modal = false;
-            document.getElementById("bar-inner").innerText = "";
-            toggle_modal();
-        }
-    }
-</script>
+        };
+    </script>
+    
+</body>
