@@ -138,8 +138,6 @@
             time = full = parseInt(document.getElementById("secs").innerText.replace("s", "")) * 1000;
 
             document.body.requestFullscreen();
-
-            window.location.href = "#runner";
         }
 
         function end(red = true) {
@@ -164,11 +162,13 @@
             document.getElementById("modal2").style.display = "block";
             document.getElementById("container").style.display = "none";
             document.exitFullscreen();
+            window.location.href = "#";
         }
 
         function hide_modal() {
             document.getElementById("modal2").style.display = "none";
             document.getElementById("container").style.display = "flex";
+            window.location.href = "#runner";
         }
 
         addEventListener(
