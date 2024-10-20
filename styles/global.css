@@ -20,7 +20,6 @@ body::backdrop {
 fieldset {
     padding: 15px;
     overflow-inline: hidden;
-    margin-bottom: 30px;
 }
 
 fieldset > div {
@@ -30,11 +29,6 @@ fieldset > div {
 
 fieldset > div > * {
     cursor: pointer;
-}
-
-fieldset > div > input[type = checkbox] {
-    transform: scale(2);
-    width: 30px;
 }
 
 #scroller {
@@ -70,8 +64,8 @@ fieldset > div > input[type = checkbox] {
     right: 0;
     display: flex;
     flex-direction: column;
-    padding: 40px;
-    gap: 60px;
+    padding: 4vh;
+    gap: 4vh;
 }
 
 button.icon {
@@ -88,11 +82,11 @@ button:hover {
 }
 
 button:not(.icon) {
-    padding: 15px 25px;
-    border: 3px solid #023047;
+    padding: 5px 10px;
+    border: 2px solid #023047;
     border-radius: 9999px;
     background-color: transparent;
-    margin: 10px;
+    margin: 4px;
 }
 
 button:not(.icon):hover {
@@ -122,7 +116,7 @@ button:not(.icon):hover {
 }
 
 #modal > * {
-    font-size: 50px;
+    font-size: 20px;
 }
 
 #exit-modal {
