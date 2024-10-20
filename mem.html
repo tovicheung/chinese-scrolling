@@ -60,9 +60,9 @@
         }
 
         input[type = range] {
-            width: 70%;
+            width: 100%;
             height: 1vh;
-            margin: 10px;
+            padding: 10px;
             background-color: red;
             outline: none;
         }
@@ -77,8 +77,13 @@
             background-color: #edffe5;
         }
 
-        #modal2 > * {
-            font-size: 20px;
+        #controls {
+            border: 3px solid #023047;
+            margin: 15px;
+        }
+
+        #control-timer {
+            flex-grow: 1;
         }
 
         hr {
@@ -92,13 +97,18 @@
 <body>
     <!-- Modal -->
     <div id="modal2">
-        <h5>Timer:</h5>
-        <div style="display: flex; flex-direction: row;">
-            <input type="range" min="5" max="10" value="7" oninput="document.getElementById('secs').innerText = this.value + 's'">
-            <h5 id="secs">7s</h5>
-        </div>
+        <h2>Timer: <span id=secs>7</span>s</h2>
+        <input type="range" id="control-timer" min="5" max="10" value="7" oninput="document.getElementById('secs').innerText = this.value">
+        <fieldset id="controls">
+            <legend><h2>Controls</h2></legend>
+            <div>
+                <input type="checkbox" id="control-hint">
+                <label for="control-hint">show punctuation</label>
+            </div>
+        </fieldset>
+
         <br>
-        <h5>Select text:</h5><span style="font-size: 15px; font-style: italic;">long press / right click to view full text</span>
+        <h2>Select text:</h2><span style="font-size: 15px; font-style: italic;">long press / right click to view full text</span>
     </div>
 
     <!-- Main runner -->
@@ -116,19 +126,30 @@
 
         const FPS = 30;
         const MSPF = 1000 / FPS; // milliseconds per frame
+        const PUNCTUATION = "，。？！；：︰「」";
 
         // running state
         let running = false; // will clicks reveal characters?
         let text = "";
+        let hints = "";
         let index = 0; // index of the character to be revealed    
         let interval = null;
         let bar_goes_modal = false;
+        let controls = {
+            punctuation: false,
+        }
         
         // time in ms
         let full = 5000;
         let time = 5000;
 
         function start() {
+            controls.punctuation = document.getElementById("control-hint").checked;
+
+            if (controls.punctuation) {
+                hints = [...text].map(c => PUNCTUATION.includes(c) ? c : "\uff3f").join(""); // ＿
+            }
+
             document.getElementById("main").innerHTML = "<span style='color: grey;'>Click to start ...</span>";
             document.getElementById("bar-inner").style.width = "100%";
             document.getElementById("bar-inner").classList.add("waiting");
@@ -137,7 +158,7 @@
             index = 0;
             bar_goes_modal = false;
             
-            time = full = parseInt(document.getElementById("secs").innerText.replace("s", "")) * 1000;
+            time = full = parseInt(document.getElementById("secs").innerText) * 1000;
 
             document.body.requestFullscreen();
         }
@@ -158,6 +179,10 @@
             index++;
             document.getElementById("main").innerHTML = text.substring(0, index);
             if (index >= text.length) end();
+            if (controls.punctuation) {
+                document.getElementById("main").innerHTML += hints.substring(index);
+                if (PUNCTUATION.includes(text[index])) advance();
+            }
         }
 
         function show_modal() {
