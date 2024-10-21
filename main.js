@@ -58,8 +58,7 @@ function fullscreen() {
     let doc = document.documentElement;
     var request = doc.requestFullScreen
               || doc.webkitRequestFullScreen
-              || doc.mozRequestFullScreen
-    ;
+              || doc.mozRequestFullScreen;
     request.call(doc);
 }
 
@@ -144,8 +143,6 @@ function set_checkboxes(val) {
 // Listeners
 
 
-var showing_stats = false;
-
 document.addEventListener("DOMContentLoaded", () => {
     const select_parent = document.getElementById("select_parent");
     parents.forEach(p => {
@@ -176,13 +173,6 @@ document.addEventListener("DOMContentLoaded", () => {
     new_question();
     push_questions();
     // [q] <a>
-
-    addEventListener("scroll", e => {
-        if (showing_stats) {
-            e.stopPropagation();
-            e.preventDefault();
-        }
-    })
     
     scroller.addEventListener("scrollend", e => {
         if (scroller.children[1].getBoundingClientRect().y < 100) {
