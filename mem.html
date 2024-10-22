@@ -104,6 +104,8 @@
             <div>
                 <input type="checkbox" id="control-hint">
                 <label for="control-hint">show punctuation</label>
+                <input type="checkbox" id="control-translations">
+                <label for="control-translations">quiz translations</label>
             </div>
         </fieldset>
 
@@ -128,51 +130,134 @@
         const MSPF = 1000 / FPS; // milliseconds per frame
         const PUNCTUATION = "，。？！；：︰「」";
 
-        // running state
-        let running = false; // will clicks reveal characters?
+        const MODES = {
+            text: {
+                // properties
+                timer: true,
+                start: function() {
+                    controls.punctuation = document.getElementById("control-hint").checked;
+
+                    if (controls.punctuation) {
+                        this.hints = [...text].map(c => PUNCTUATION.includes(c) ? c : "\uff3f").join(""); // ＿
+                    }
+                    
+                    this.index = 0;
+                    
+                    time = full = parseInt(document.getElementById("secs").innerText) * 1000;
+                },
+                advance: function() {
+                    this.index++;
+                    document.getElementById("main").innerHTML = text.substring(0, this.index);
+                    if (this.index >= text.length) end();
+                    if (controls.punctuation) {
+                        document.getElementById("main").innerHTML += this.hints.substring(this.index);
+                        if (PUNCTUATION.includes(text[this.index])) this.advance();
+                    }
+                },
+                end: function() {
+                    document.getElementById("main").innerHTML = text.substring(0, this.index) + `<span class="red">${text.substr(this.index)}</span>`;
+                },
+                // state
+                hints: "",
+                index: 0,
+
+            },
+            translations: {
+                // properties
+                timer: false,
+                start: function() {
+                    this.trans = JSON.parse(JSON.stringify(obj["translations"]));
+                    this.need_reveal = false;
+                },
+                advance: function() {
+                    if (this.need_reveal) {
+                        document.getElementById("main").innerHTML = text.substring(0, this.index) + `<span class="red">${text.substr(this.index, this.length)}(${this.word})</span>` + text.substring(this.index + this.length);
+                        delete this.trans[this.index];
+                        if (Object.keys(this.trans).length == 0) end();
+                    } else {
+                        let keys = Object.keys(this.trans);
+                        this.index = parseInt(keys[Math.floor(keys.length * Math.random())]);
+                        [this.length, this.word] = this.trans[this.index];
+                        document.getElementById("main").innerHTML = text.substring(0, this.index) + `<span class="redder">${text.substr(this.index, this.length)}</span>` + text.substring(this.index + this.length);
+                    }
+                    this.need_reveal = !this.need_reveal;
+                },
+                // state
+                trans: null,
+                index: 0,
+                length: 0,
+                word: "",
+                need_reveal: false,
+            },
+        };
+
+        const timer = { // in ms
+            time: 5000,
+            full: 5000,
+            interval: null,
+            go_modal: false,
+            
+            start: function() {
+                document.getElementById("bar-inner").classList.remove("waiting");
+                this.interval = setInterval(() => {
+                    this.time -= MSPF
+                    if (this.time < 0) return end();
+                    document.getElementById("bar-inner").style.width = `${this.time / this.full * 100}%`;
+                }, MSPF);
+            },
+            stop: function() {
+                clearInterval(this.interval);
+                this.interval = null;
+                this.go_modal = true;
+                document.getElementById("bar-inner").style.width = "100%";
+                document.getElementById("bar-inner").classList.add("waiting");
+                document.getElementById("bar-inner").innerText = "Done";
+            },
+            waiting: function() {
+                this.go_modal = false;
+                document.getElementById("bar-inner").style.width = "100%";
+                document.getElementById("bar-inner").classList.add("waiting");
+            }
+        }
+
+        // current state
+        let mode = null;
+        let started = false;
+        let running = false; // clicks advance?
         let text = "";
-        let hints = "";
-        let index = 0; // index of the character to be revealed    
-        let interval = null;
-        let bar_goes_modal = false;
+        let obj = null;
         let controls = {
             punctuation: false,
+            translations: false,
         }
         
-        // time in ms
-        let full = 5000;
-        let time = 5000;
 
-        function start() {
+        function prepare() {
+            // get controls
             controls.punctuation = document.getElementById("control-hint").checked;
+            controls.translations = document.getElementById("control-translations").checked;
 
-            if (controls.punctuation) {
-                hints = [...text].map(c => PUNCTUATION.includes(c) ? c : "\uff3f").join(""); // ＿
+            // determine mode
+            if (controls.translations) {
+                mode = MODES.translations;
             }
 
             document.getElementById("main").innerHTML = "<span style='color: grey;'>Click to start ...</span>";
-            document.getElementById("bar-inner").style.width = "100%";
-            document.getElementById("bar-inner").classList.add("waiting");
+
+            timer.time = timer.full = parseInt(document.getElementById("secs").innerText) * 1000;
+            timer.waiting();
 
             running = true;
-            index = 0;
-            bar_goes_modal = false;
-            
-            time = full = parseInt(document.getElementById("secs").innerText) * 1000;
+            started = false;
 
             document.body.requestFullscreen();
         }
 
-        function end(red = true) {
+        function end() {
             running = false;
-            clearInterval(interval);
-            interval = null;
-            bar_goes_modal = true;
-
-            document.getElementById("main").innerHTML = text.substring(0, index) + `<span class="${red ? "red" : ""}">${text.substr(index)}</span>`;
-            document.getElementById("bar-inner").style.width = "100%";
-            document.getElementById("bar-inner").classList.add("waiting");
-            document.getElementById("bar-inner").innerText = "Done";
+            timer.stop();
+            mode.end();
+            mode = null;
         }
 
         function advance() {
@@ -205,18 +290,15 @@
             () => {
                 if (!running) return
                 
-                if (interval === null) {
+                if (!started) {
                     // first click
-                    document.getElementById("bar-inner").classList.remove("waiting");
-                    interval = setInterval(() => {
-                        time -= MSPF
-                        if (time < 0) return end();
-                        document.getElementById("bar-inner").style.width = `${time / full * 100}%`;
-                    }, MSPF);
+                    mode.start();
+                    if (mode.timer) timer.start();
+                    started = true;
                 }
                 
-                time = Math.min(time + 1000, full);
-                advance();
+                timer.time = Math.min(timer.time + 1000, timer.full);
+                mode.advance();
             }
         );
         
@@ -225,9 +307,9 @@
             // bar click listener
 
             document.getElementById("bar-inner").onclick = ("click", () => {
-                if (bar_goes_modal) {
+                if (timer.go_modal) {
                     document.getElementById("bar-inner").innerText = "";
-                    bar_goes_modal = false;
+                    timer.go_modal = false;
                     show_modal();
                 }
             });
@@ -248,15 +330,18 @@
                         {
                             innerText: key,
                             onclick: e => {
-                                text = TEXTS[e.target.innerText];
+                                obj = TEXTS[e.target.innerText];
+                                text = TEXTS[e.target.innerText]["text"];
                                 hide_modal();
-                                start();
+                                mode = MODES.text;
+                                prepare();
                             },
                             oncontextmenu: e => {
                                 e.preventDefault();
-                                text = TEXTS[e.target.innerText];
+                                obj = TEXTS[e.target.innerText];
+                                text = TEXTS[e.target.innerText]["text"];
                                 hide_modal();
-                                start();
+                                prepare();
                                 end(false);
                             }
                         }
@@ -268,10 +353,7 @@
 
         window.onhashchange = () => {
             if (window.location.hash == "") {
-                end();
-                bar_goes_modal = false;
-                document.getElementById("bar-inner").innerText = "";
-                show_modal();
+                window.location.reload();
             }
         };
     </script>

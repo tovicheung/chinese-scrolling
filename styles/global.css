@@ -149,3 +149,8 @@ button:not(.icon):hover {
 .red {
     color: #ff4221;
 }
+
+.redder {
+    color: white;
+    background-color: red;
+}
