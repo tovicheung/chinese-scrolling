@@ -30,6 +30,10 @@
             font-weight: bold;
         }
 
+        #main.long {
+            font-size: 2vh !important;
+        }
+
         #bar-outer {
             width: 80vw;
             height: 2vh;
@@ -182,6 +186,7 @@
                     }
                     this.need_reveal = !this.need_reveal;
                 },
+                end: function() {},
                 // state
                 trans: null,
                 index: 0,
@@ -189,6 +194,14 @@
                 word: "",
                 need_reveal: false,
             },
+            show: {
+                timer: false,
+                start: function() {
+                    document.getElementById("main").innerHTML = text;
+                    end();
+                },
+                end: function() {},
+            }
         };
 
         const timer = { // in ms
@@ -233,6 +246,7 @@
         
 
         function prepare() {
+            hide_modal();
             // get controls
             controls.punctuation = document.getElementById("control-hint").checked;
             controls.translations = document.getElementById("control-translations").checked;
@@ -249,15 +263,23 @@
 
             running = true;
             started = false;
+            
+            if (obj.long) {
+                document.getElementById("main").classList.add("long");
+            } else {
+                document.getElementById("main").classList.remove("long");
+            }
 
             document.body.requestFullscreen();
         }
 
         function end() {
+            // universal interrupt to go back to modal
             running = false;
             timer.stop();
-            mode.end();
+            mode?.end();
             mode = null;
+            show_modal();
         }
 
         function advance() {
@@ -332,7 +354,6 @@
                             onclick: e => {
                                 obj = TEXTS[e.target.innerText];
                                 text = TEXTS[e.target.innerText]["text"];
-                                hide_modal();
                                 mode = MODES.text;
                                 prepare();
                             },
@@ -340,9 +361,8 @@
                                 e.preventDefault();
                                 obj = TEXTS[e.target.innerText];
                                 text = TEXTS[e.target.innerText]["text"];
-                                hide_modal();
+                                mode = MODES.show;
                                 prepare();
-                                end(false);
                             }
                         }
                     )
@@ -353,7 +373,7 @@
 
         window.onhashchange = () => {
             if (window.location.hash == "") {
-                window.location.reload();
+                end();
             }
         };
     </script>
