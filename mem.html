@@ -257,6 +257,7 @@
             }
 
             document.getElementById("main").innerHTML = "<span style='color: grey;'>Click to start ...</span>";
+            document.getElementById("bar-inner").innerText = "";
 
             timer.time = timer.full = parseInt(document.getElementById("secs").innerText) * 1000;
             timer.waiting();
@@ -274,11 +275,15 @@
         }
 
         function end() {
-            // universal interrupt to go back to modal
             running = false;
             timer.stop();
             mode?.end();
             mode = null;
+        }
+
+        function go_modal() {
+            // universal interrupt to go back to modal
+            end();
             show_modal();
         }
 
@@ -373,7 +378,7 @@
 
         window.onhashchange = () => {
             if (window.location.hash == "") {
-                end();
+                go_modal();
             }
         };
     </script>
