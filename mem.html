@@ -55,7 +55,7 @@
             font-size: 70%;
         }
 
-        #bar-inner.waiting {
+        #bar-inner.cyan {
             background-color: rgb(47, 181, 234)
         }
 
@@ -98,7 +98,7 @@
 <body>
     <!-- Modal -->
     <div id="modal2">
-        <h2>Timer: <span id=secs>7</span>s</h2>
+        <h2>計時: <span id=secs>7</span>s</h2>
         <input type="range" id="control-timer" min="5" max="10" value="7" oninput="document.getElementById('secs').innerText = this.value">
         
         <br>
@@ -115,7 +115,7 @@
     </div>
         <br>
         
-        <h2>Select text:</h2>
+        <h2>選擇文章</h2>
     </div>
 
     <!-- Main runner -->
@@ -130,7 +130,7 @@
 
     <script src="data/texts.js"></script>
     <script>
-
+        // Constants
         const FPS = 30;
         const MSPF = 1000 / FPS; // milliseconds per frame
         const PUNCTUATION = "，。？！；：︰「」『』";
@@ -208,32 +208,36 @@
             },
         };
 
-        const timer = { // in ms
+        const bar = { // in ms
             time: 5000,
             full: 5000,
             interval: null,
             onclick_go_modal: false,
+
+            set_timer: function(millis) {
+                this.time = this.full = millis;
+            },
             
-            start: function() {
-                document.getElementById("bar-inner").classList.remove("waiting");
+            start_timer: function() {
+                document.getElementById("bar-inner").classList.remove("cyan");
                 this.interval = setInterval(() => {
                     this.time -= MSPF
                     if (this.time < 0) return end();
                     document.getElementById("bar-inner").style.width = `${this.time / this.full * 100}%`;
                 }, MSPF);
             },
-            stop: function() {
+            stop_timer: function() {
                 clearInterval(this.interval);
                 this.interval = null;
                 this.onclick_go_modal = true;
                 document.getElementById("bar-inner").style.width = "100%";
-                document.getElementById("bar-inner").classList.add("waiting");
+                document.getElementById("bar-inner").classList.add("cyan");
                 document.getElementById("bar-inner").innerText = "Done";
             },
-            waiting: function() {
+            idle: function() {
                 this.onclick_go_modal = false;
                 document.getElementById("bar-inner").style.width = "100%";
-                document.getElementById("bar-inner").classList.add("waiting");
+                document.getElementById("bar-inner").classList.add("cyan");
             }
         }
 
@@ -251,11 +255,11 @@
 
             mode = MODES[document.querySelector('input[type = radio][name= mode ]:checked').value];
 
-            document.getElementById("main").innerHTML = "<span style='color: grey;'>Click to start ...</span>";
+            document.getElementById("main").innerHTML = "<span style='color: grey;'>點擊開始 ...</span>";
             document.getElementById("bar-inner").innerText = "";
 
-            timer.time = timer.full = parseInt(document.getElementById("secs").innerText) * 1000;
-            timer.waiting();
+            bar.set_timer(parseInt(document.getElementById("secs").innerText) * 1000);
+            bar.idle();
 
             running = true;
             started = false;
@@ -273,19 +277,9 @@
 
         function end() {
             running = false;
-            timer.stop();
+            bar.stop_timer();
             mode?.end();
             mode = null;
-        }
-
-        function advance() {
-            index++;
-            document.getElementById("main").innerHTML = text.substring(0, index);
-            if (index >= text.length) end();
-            if (controls.punctuation) {
-                document.getElementById("main").innerHTML += hints.substring(index);
-                if (PUNCTUATION.includes(text[index])) advance();
-            }
         }
 
         function show_modal() {
@@ -310,11 +304,11 @@
                 
                 if (!started) {
                     // first click
-                    if (mode.timer) timer.start();
+                    if (mode.timer) bar.start_timer();
                     started = true;
                 }
                 
-                timer.time = Math.min(timer.time + 1000, timer.full);
+                bar.time = Math.min(bar.time + 1000, bar.full);
                 mode.advance();
             }
         );
@@ -324,9 +318,9 @@
             // bar click listener
 
             document.getElementById("bar-inner").onclick = ("click", () => {
-                if (timer.onclick_go_modal) {
+                if (bar.onclick_go_modal) {
                     document.getElementById("bar-inner").innerText = "";
-                    timer.onclick_go_modal = false;
+                    bar.onclick_go_modal = false;
                     show_modal();
                 }
             });
