@@ -69,6 +69,7 @@
             padding: 10px;
             background-color: red;
             outline: none;
+            flex-grow: 1;
         }
 
         #modal2 {
@@ -86,10 +87,6 @@
             margin: 15px;
         }
 
-        #control-timer {
-            flex-grow: 1;
-        }
-
         hr {
             border: 1px solid gray;
             margin: 10px;
@@ -103,18 +100,22 @@
     <div id="modal2">
         <h2>Timer: <span id=secs>7</span>s</h2>
         <input type="range" id="control-timer" min="5" max="10" value="7" oninput="document.getElementById('secs').innerText = this.value">
-        <fieldset id="controls">
-            <legend><h2>Controls</h2></legend>
-            <div>
-                <input type="checkbox" id="control-hint">
-                <label for="control-hint">show punctuation</label>
-                <input type="checkbox" id="control-translations">
-                <label for="control-translations">quiz translations</label>
-            </div>
-        </fieldset>
-
+        
         <br>
-        <h2>Select text:</h2><span style="font-size: 15px; font-style: italic;">long press / right click to view full text</span>
+        <br>
+        <div style="display: flex; flex-direction: row; gap: 8px;">
+        <input type="radio" id="mode0" name="mode" value="mode0">
+        <label for="mode0">原文</label><br>
+        <input type="radio" id="mode1" name="mode" value="mode1" checked>
+        <label for="mode1">斷字</label><br>
+        <input type="radio" id="mode2" name="mode" value="mode2">
+        <label for="mode2">斷句</label><br>
+        <input type="radio" id="mode3" name="mode" value="mode3">
+        <label for="mode3">譯字</label>
+    </div>
+        <br>
+        
+        <h2>Select text:</h2>
     </div>
 
     <!-- Main runner -->
@@ -132,45 +133,56 @@
 
         const FPS = 30;
         const MSPF = 1000 / FPS; // milliseconds per frame
-        const PUNCTUATION = "，。？！；：︰「」";
+        const PUNCTUATION = "，。？！；：︰「」『』";
 
         const MODES = {
-            text: {
-                // properties
+            mode0: {
+                timer: false,
+                prepare: function() {
+                    document.getElementById("main").innerHTML = text;
+                    end();
+                },
+                end: function() {},
+            },
+            mode1: {
                 timer: true,
-                start: function() {
-                    controls.punctuation = document.getElementById("control-hint").checked;
-
-                    if (controls.punctuation) {
-                        this.hints = [...text].map(c => PUNCTUATION.includes(c) ? c : "\uff3f").join(""); // ＿
-                    }
-                    
+                prepare: function() {
                     this.index = 0;
-                    
-                    time = full = parseInt(document.getElementById("secs").innerText) * 1000;
                 },
                 advance: function() {
                     this.index++;
                     document.getElementById("main").innerHTML = text.substring(0, this.index);
                     if (this.index >= text.length) end();
-                    if (controls.punctuation) {
-                        document.getElementById("main").innerHTML += this.hints.substring(this.index);
-                        if (PUNCTUATION.includes(text[this.index])) this.advance();
-                    }
                 },
                 end: function() {
                     document.getElementById("main").innerHTML = text.substring(0, this.index) + `<span class="red">${text.substr(this.index)}</span>`;
                 },
-                // state
+                index: 0,
+            },
+            mode2: {
+                timer: true,
+                prepare: function() {
+                    this.index = 0;
+                    // fill with full-width underscores
+                    this.hints = [...text].map(c => PUNCTUATION.includes(c) ? c : "\uff3f").join("");
+                },
+                advance: function() {
+                    this.index++;
+                    document.getElementById("main").innerHTML = text.substring(0, this.index) + this.hints.substring(this.index);
+                    if (this.index >= text.length) end();
+                    if (PUNCTUATION.includes(text[this.index])) this.advance();
+                },
+                end: function() {
+                    document.getElementById("main").innerHTML = text.substring(0, this.index) + `<span class="red">${text.substr(this.index)}</span>`;
+                },
                 hints: "",
                 index: 0,
-
             },
-            translations: {
+            mode3: {
                 // properties
                 timer: false,
-                start: function() {
-                    this.trans = JSON.parse(JSON.stringify(obj["translations"]));
+                prepare: function(text_object) {
+                    this.trans = JSON.parse(JSON.stringify(text_object["translations"]));
                     this.need_reveal = false;
                 },
                 advance: function() {
@@ -194,21 +206,13 @@
                 word: "",
                 need_reveal: false,
             },
-            show: {
-                timer: false,
-                start: function() {
-                    document.getElementById("main").innerHTML = text;
-                    end();
-                },
-                end: function() {},
-            }
         };
 
         const timer = { // in ms
             time: 5000,
             full: 5000,
             interval: null,
-            go_modal: false,
+            onclick_go_modal: false,
             
             start: function() {
                 document.getElementById("bar-inner").classList.remove("waiting");
@@ -221,13 +225,13 @@
             stop: function() {
                 clearInterval(this.interval);
                 this.interval = null;
-                this.go_modal = true;
+                this.onclick_go_modal = true;
                 document.getElementById("bar-inner").style.width = "100%";
                 document.getElementById("bar-inner").classList.add("waiting");
                 document.getElementById("bar-inner").innerText = "Done";
             },
             waiting: function() {
-                this.go_modal = false;
+                this.onclick_go_modal = false;
                 document.getElementById("bar-inner").style.width = "100%";
                 document.getElementById("bar-inner").classList.add("waiting");
             }
@@ -238,23 +242,14 @@
         let started = false;
         let running = false; // clicks advance?
         let text = "";
-        let obj = null;
-        let controls = {
-            punctuation: false,
-            translations: false,
-        }
         
 
-        function prepare() {
+        function prepare(text_object) {
             hide_modal();
-            // get controls
-            controls.punctuation = document.getElementById("control-hint").checked;
-            controls.translations = document.getElementById("control-translations").checked;
 
-            // determine mode
-            if (controls.translations) {
-                mode = MODES.translations;
-            }
+            text = text_object.text;
+
+            mode = MODES[document.querySelector('input[type = radio][name= mode ]:checked').value];
 
             document.getElementById("main").innerHTML = "<span style='color: grey;'>Click to start ...</span>";
             document.getElementById("bar-inner").innerText = "";
@@ -265,13 +260,15 @@
             running = true;
             started = false;
             
-            if (obj.long) {
+            if (text_object.long) {
                 document.getElementById("main").classList.add("long");
             } else {
                 document.getElementById("main").classList.remove("long");
             }
 
             document.body.requestFullscreen();
+
+            mode.prepare(text_object);
         }
 
         function end() {
@@ -279,12 +276,6 @@
             timer.stop();
             mode?.end();
             mode = null;
-        }
-
-        function go_modal() {
-            // universal interrupt to go back to modal
-            end();
-            show_modal();
         }
 
         function advance() {
@@ -319,7 +310,6 @@
                 
                 if (!started) {
                     // first click
-                    mode.start();
                     if (mode.timer) timer.start();
                     started = true;
                 }
@@ -334,9 +324,9 @@
             // bar click listener
 
             document.getElementById("bar-inner").onclick = ("click", () => {
-                if (timer.go_modal) {
+                if (timer.onclick_go_modal) {
                     document.getElementById("bar-inner").innerText = "";
-                    timer.go_modal = false;
+                    timer.onclick_go_modal = false;
                     show_modal();
                 }
             });
@@ -351,34 +341,20 @@
                     last_prefix = prefix;
                     modal.appendChild(document.createElement("hr"));
                 }
-                modal.appendChild(
-                    Object.assign(
-                        document.createElement("button"),
-                        {
-                            innerText: key,
-                            onclick: e => {
-                                obj = TEXTS[e.target.innerText];
-                                text = TEXTS[e.target.innerText]["text"];
-                                mode = MODES.text;
-                                prepare();
-                            },
-                            oncontextmenu: e => {
-                                e.preventDefault();
-                                obj = TEXTS[e.target.innerText];
-                                text = TEXTS[e.target.innerText]["text"];
-                                mode = MODES.show;
-                                prepare();
-                            }
-                        }
-                    )
-                );
+                let btn = document.createElement("button");
+                btn.innerText = key;
+                btn.onclick = e => {
+                    prepare(TEXTS[e.target.innerText]);
+                }
+                modal.appendChild(btn);
             }
             show_modal();
         });
 
         window.onhashchange = () => {
             if (window.location.hash == "") {
-                go_modal();
+                end();
+                show_modal();
             }
         };
     </script>
