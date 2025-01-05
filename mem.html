@@ -138,7 +138,8 @@
         const MODES = {
             mode0: {
                 timer: false,
-                prepare: function(text_object) {
+
+                prepare(text_object) {
                     document.getElementById("main").innerHTML = this.pre_gen = text;
                     real_index = 0;
                     iter_index = 0;
@@ -149,9 +150,9 @@
                         this.pre_gen = this.pre_gen.substring(0, iter_index+1) + snippet + this.pre_gen.substring(iter_index+1);
                         iter_index += snippet.length;
                     }
-                    // end(); manually go back
                 },
-                advance: function() {
+
+                advance() {
                     this.show_translations = !this.show_translations;
                     if (this.show_translations) {
                         document.getElementById("main").innerHTML = this.pre_gen;
@@ -159,52 +160,63 @@
                         document.getElementById("main").innerHTML = text;
                     }
                 },
+
                 end: function() {},
+
                 pre_gen: "",
                 show_translations: false,
             },
             mode1: {
                 timer: true,
-                prepare: function() {
+
+                prepare() {
                     this.index = 0;
                 },
-                advance: function() {
+
+                advance() {
                     this.index++;
                     document.getElementById("main").innerHTML = text.substring(0, this.index);
                     if (this.index >= text.length) end();
                 },
-                end: function() {
+
+                end() {
                     document.getElementById("main").innerHTML = text.substring(0, this.index) + `<span class="red">${text.substr(this.index)}</span>`;
                 },
+
                 index: 0,
             },
             mode2: {
                 timer: true,
-                prepare: function() {
+
+                prepare() {
                     this.index = 0;
                     // fill with full-width underscores
                     this.hints = [...text].map(c => PUNCTUATION.includes(c) ? c : "\uff3f").join("");
                 },
-                advance: function() {
+
+                advance() {
                     this.index++;
                     document.getElementById("main").innerHTML = text.substring(0, this.index) + this.hints.substring(this.index);
                     if (this.index >= text.length) end();
                     if (PUNCTUATION.includes(text[this.index])) this.advance();
                 },
-                end: function() {
+
+                end() {
                     document.getElementById("main").innerHTML = text.substring(0, this.index) + `<span class="red">${text.substr(this.index)}</span>`;
                 },
+
                 hints: "",
                 index: 0,
             },
             mode3: {
-                // properties
                 timer: false,
-                prepare: function(text_object) {
+
+                prepare(text_object) {
                     this.trans = JSON.parse(JSON.stringify(text_object["translations"]));
                     this.need_reveal = false;
                 },
-                advance: function() {
+
+                advance() {
                     if (this.need_reveal) {
                         document.getElementById("main").innerHTML = text.substring(0, this.index) + `<span class="red">${text.substr(this.index, this.length)}(${this.word})</span>` + text.substring(this.index + this.length);
                         delete this.trans[this.index];
@@ -217,8 +229,9 @@
                     }
                     this.need_reveal = !this.need_reveal;
                 },
+
                 end: function() {},
-                // state
+
                 trans: null,
                 index: 0,
                 length: 0,
@@ -233,11 +246,11 @@
             interval: null,
             onclick_go_modal: false,
 
-            set_timer: function(millis) {
+            set_timer(millis) {
                 this.time = this.full = millis;
             },
             
-            start_timer: function() {
+            start_timer() {
                 document.getElementById("bar-inner").classList.remove("cyan");
                 this.interval = setInterval(() => {
                     this.time -= MSPF
@@ -245,7 +258,8 @@
                     document.getElementById("bar-inner").style.width = `${this.time / this.full * 100}%`;
                 }, MSPF);
             },
-            stop_timer: function() {
+
+            stop_timer() {
                 clearInterval(this.interval);
                 this.interval = null;
                 this.onclick_go_modal = true;
@@ -253,11 +267,12 @@
                 document.getElementById("bar-inner").classList.add("cyan");
                 document.getElementById("bar-inner").innerText = "Done";
             },
-            idle: function() {
+
+            idle() {
                 this.onclick_go_modal = false;
                 document.getElementById("bar-inner").style.width = "100%";
                 document.getElementById("bar-inner").classList.add("cyan");
-            }
+            },
         }
 
         // current state
@@ -371,5 +386,4 @@
             }
         };
     </script>
-    
 </body>
