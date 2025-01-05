@@ -138,11 +138,30 @@
         const MODES = {
             mode0: {
                 timer: false,
-                prepare: function() {
-                    document.getElementById("main").innerHTML = text;
-                    end();
+                prepare: function(text_object) {
+                    document.getElementById("main").innerHTML = this.pre_gen = text;
+                    real_index = 0;
+                    iter_index = 0;
+                    for (const [t_index, [_t_length, t_word]] of Object.entries(text_object["translations"])) {
+                        iter_index += t_index - real_index;
+                        real_index = t_index;
+                        snippet = `<span class="small">${t_word}</span>`;
+                        this.pre_gen = this.pre_gen.substring(0, iter_index+1) + snippet + this.pre_gen.substring(iter_index+1);
+                        iter_index += snippet.length;
+                    }
+                    // end(); manually go back
+                },
+                advance: function() {
+                    this.show_translations = !this.show_translations;
+                    if (this.show_translations) {
+                        document.getElementById("main").innerHTML = this.pre_gen;
+                    } else {
+                        document.getElementById("main").innerHTML = text;
+                    }
                 },
                 end: function() {},
+                pre_gen: "",
+                show_translations: false,
             },
             mode1: {
                 timer: true,
@@ -253,7 +272,7 @@
 
             text = text_object.text;
 
-            mode = MODES[document.querySelector('input[type = radio][name= mode ]:checked').value];
+            mode = MODES[document.querySelector('input[type = radio][name = mode]:checked').value];
 
             document.getElementById("main").innerHTML = "<span style='color: grey;'>點擊開始 ...</span>";
             document.getElementById("bar-inner").innerText = "";

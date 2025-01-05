@@ -154,3 +154,7 @@ button:not(.icon):hover {
     color: white;
     background-color: red;
 }
+
+.small {
+    font-size: 0.6em;
+}

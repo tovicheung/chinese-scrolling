@@ -65,6 +65,15 @@ def generate_from_lines(base_name: str, lines: list[str], config: Config):
                 index += 1
             
             paragraph += processed_text
+        
+    if paragraph:
+        key = f"{base_name}-#{para_counter}"
+        TEXTS[key] = {
+            "text": paragraph,
+            "translations": translations,
+            "long": config.long,
+        }
+        print("Generated", key, paragraph[:15], "...")
 
 
 for file in os.listdir("texts.ignore"):
