@@ -13,10 +13,11 @@
             -moz-user-select: none; /* Old versions of Firefox */
             -ms-user-select: none; /* Internet Explorer/Edge */
             user-select: none;
+            margin: 0;
+            border: 0;
         }
 
         #container {
-            height: 100%;
             padding: 7vw;
             display: flex;
             flex-direction: column;
@@ -72,7 +73,7 @@
             flex-grow: 1;
         }
 
-        #modal2 {
+        #options {
             left: 0;
             top: 0;
             width: 100%;
@@ -109,13 +110,10 @@
 </head>
 
 <body>
-    <!-- Modal -->
-    <div id="modal2">
+    <div id="options">
         <h2>計時: <span id=secs>7</span>s</h2>
         <input type="range" id="control-timer" min="5" max="10" value="7" oninput="document.getElementById('secs').innerText = this.value">
-        
-        <br>
-        <br>
+        <br><br>
         <div style="display: flex; flex-direction: row; gap: 8px;">
         <input type="radio" id="mode0" name="mode" value="mode0">
         <label for="mode0">原文</label><br>
@@ -127,7 +125,6 @@
         <label for="mode3">譯字</label>
     </div>
         <br>
-        
         <h2>選擇文章</h2>
     </div>
 
@@ -143,10 +140,13 @@
 
     <script src="data/texts.js"></script>
     <script>
-        // Constants
         const FPS = 30;
         const MSPF = 1000 / FPS; // milliseconds per frame
         const PUNCTUATION = "，。？！；：︰「」『』";
+
+        // prepare(text_object) is called when the game is first loaded
+        // advance() is called everytime the user clicks
+        // end() is called by timer or called in advance()
 
         const MODES = {
             mode0: {
@@ -257,7 +257,7 @@
             time: 5000,
             full: 5000,
             interval: null,
-            onclick_go_modal: false,
+            onclick_go_options: false,
             danger: false,
 
             set_timer(millis) {
@@ -287,7 +287,7 @@
             stop_timer() {
                 clearInterval(this.interval);
                 this.interval = null;
-                this.onclick_go_modal = true;
+                this.onclick_go_options = true;
                 document.getElementById("bar-inner").style.width = "100%";
                 document.getElementById("bar-inner").classList.add("cyan");
                 document.getElementById("bar-inner").innerText = "Done";
@@ -297,7 +297,7 @@
             },
 
             idle() {
-                this.onclick_go_modal = false;
+                this.onclick_go_options = false;
                 document.getElementById("bar-inner").style.width = "100%";
                 document.getElementById("bar-inner").classList.add("cyan");
             },
@@ -306,12 +306,12 @@
         // current state
         let mode = null;
         let started = false;
-        let running = false; // clicks advance?
+        let running = false; // do clicks triger advance()?
         let text = "";
         
 
         function prepare(text_object) {
-            hide_modal();
+            hide_options();
 
             text = text_object.text;
 
@@ -344,15 +344,15 @@
             mode = null;
         }
 
-        function show_modal() {
-            document.getElementById("modal2").style.display = "block";
+        function show_options() {
+            document.getElementById("options").style.display = "block";
             document.getElementById("container").style.display = "none";
             document.exitFullscreen();
             window.location.href = "#";
         }
 
-        function hide_modal() {
-            document.getElementById("modal2").style.display = "none";
+        function hide_options() {
+            document.getElementById("options").style.display = "none";
             document.getElementById("container").style.display = "flex";
             window.location.href = "#runner";
         }
@@ -380,37 +380,37 @@
             // bar click listener
 
             document.getElementById("bar-inner").onclick = ("click", () => {
-                if (bar.onclick_go_modal) {
+                if (bar.onclick_go_options) {
                     document.getElementById("bar-inner").innerText = "";
-                    bar.onclick_go_modal = false;
-                    show_modal();
+                    bar.onclick_go_options = false;
+                    show_options();
                 }
             });
 
             // set up texts
 
-            let modal = document.getElementById("modal2");
+            let options = document.getElementById("options");
             let last_prefix = "";
             for (key in TEXTS) {
                 let prefix = key.split("-")[0];
                 if (prefix != last_prefix) {
                     last_prefix = prefix;
-                    modal.appendChild(document.createElement("hr"));
+                    options.appendChild(document.createElement("hr"));
                 }
                 let btn = document.createElement("button");
                 btn.innerText = key;
                 btn.onclick = e => {
                     prepare(TEXTS[e.target.innerText]);
                 }
-                modal.appendChild(btn);
+                options.appendChild(btn);
             }
-            show_modal();
+            show_options();
         });
 
         window.onhashchange = () => {
             if (window.location.hash == "") {
                 end();
-                show_modal();
+                show_options();
             }
         };
     </script>
