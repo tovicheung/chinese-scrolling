@@ -1,194 +1,274 @@
 
-// document.getElementById("container").addEventListener("scroll", e => {
-//      // console.log(document.getElementById("primary").getBoundingClientRect())
-//      var at_snapping_point = e.target.scrollTop % e.target.offsetHeight === 0;
-//      var timeout = at_snapping_point ? 0 : 150;
-// 
-//      clearTimeout(e.target.scrollTimeout);
-//      
-//      e.target.scrollTimeout = setTimeout(() => {
-//            // alert();
-//            // return;
-//            // scroll snapped!
-//            document.getElementById("secondary").id = "primary";
-//            e = document.createElement("section")
-//            e.innerText = "hello" + Date.now().toString();
-//            e.id = "secondary";
-//            document.getElementById("container").appendChild(e)
-//      }, timeout);
-// })
+const FPS = 30;
+const MSPF = 1000 / FPS; // milliseconds per frame
+const PUNCTUATION = "，。？！；：︰「」『』";
 
+// prepare(text_object) is called when the game is first loaded
+// advance() is called everytime the user clicks
+// end() is called by timer or called in advance()
 
-// quick redirect
+const MODES = {
+    mode0: {
+        timer: false,
 
-if (window.location.hash == "") {
-    window.location.href = "mem.html";
-}
+        prepare(text_object) {
+            document.getElementById("main").innerHTML = this.pre_gen = text;
+            real_index = 0;
+            iter_index = 0;
+            for (const [t_index, [_t_length, t_word]] of Object.entries(text_object["translations"])) {
+                iter_index += t_index - real_index;
+                real_index = t_index;
+                snippet = `<span class="small">${t_word}</span>`;
+                this.pre_gen = this.pre_gen.substring(0, iter_index+1) + snippet + this.pre_gen.substring(iter_index+1);
+                iter_index += snippet.length;
+            }
+        },
 
+        advance() {
+            this.show_translations = !this.show_translations;
+            if (this.show_translations) {
+                document.getElementById("main").innerHTML = this.pre_gen;
+            } else {
+                document.getElementById("main").innerHTML = text;
+            }
+        },
 
-// Variables
+        end: function() {},
 
+        pre_gen: "",
+        show_translations: false,
+    },
+    mode1: {
+        timer: true,
 
-const parents = [...new Set(QUESTIONS.map(q => q.parent))];
-const qtype_to_name = {
-    0: "譯字",
-    1: "資料",
-    2: "問答",
-}
+        prepare() {
+            this.index = 0;
+        },
 
-const queue = [];
+        advance() {
+            this.index++;
+            document.getElementById("main").innerHTML = text.substring(0, this.index);
+            if (this.index >= text.length) end();
+        },
 
-var showing_answer = false;
-var allowed_parents = new Set(parents.slice());
-var score = 0;
+        end() {
+            document.getElementById("main").innerHTML = text.substring(0, this.index) + `<span class="red">${text.substr(this.index)}</span>`;
+        },
 
+        index: 0,
+    },
+    mode2: {
+        timer: true,
 
-// Logic
+        prepare() {
+            this.index = 0;
+            // fill with full-width underscores
+            this.hints = [...text].map(c => PUNCTUATION.includes(c) ? c : "\uff3f").join("");
+        },
 
+        advance() {
+            this.index++;
+            document.getElementById("main").innerHTML = text.substring(0, this.index) + this.hints.substring(this.index);
+            if (this.index >= text.length) end();
+            if (PUNCTUATION.includes(text[this.index])) this.advance();
+        },
 
-function choice(arr) {
-    return arr[Math.floor(Math.random() * arr.length)]
-}
+        end() {
+            document.getElementById("main").innerHTML = text.substring(0, this.index) + `<span class="red">${text.substr(this.index)}</span>`;
+        },
 
-function choose_question() {
-    return choice(QUESTIONS.filter(q => allowed_parents.has(q.parent)));
-}
+        hints: "",
+        index: 0,
+    },
+    mode3: {
+        timer: false,
 
-function fullscreen() {
-    let doc = document.documentElement;
-    var request = doc.requestFullScreen
-              || doc.webkitRequestFullScreen
-              || doc.mozRequestFullScreen;
-    request.call(doc);
-}
+        prepare(text_object) {
+            this.trans = JSON.parse(JSON.stringify(text_object["translations"]));
+            this.need_reveal = false;
+        },
 
-function new_question() {
-    q = choose_question();
-    e = document.createElement("section")
+        advance() {
+            if (this.need_reveal) {
+                document.getElementById("main").innerHTML = text.substring(0, this.index) + `<span class="red">${text.substr(this.index, this.length)}(${this.word})</span>` + text.substring(this.index + this.length);
+                delete this.trans[this.index];
+                if (Object.keys(this.trans).length == 0) end();
+            } else {
+                let keys = Object.keys(this.trans);
+                this.index = parseInt(keys[Math.floor(keys.length * Math.random())]);
+                [this.length, this.word] = this.trans[this.index];
+                document.getElementById("main").innerHTML = text.substring(0, this.index) + `<span class="redder">${text.substr(this.index, this.length)}</span>` + text.substring(this.index + this.length);
+            }
+            this.need_reveal = !this.need_reveal;
+        },
 
-    // header
-    header = document.createElement("h5");
-    header.innerText = "〈" + q.parent + "〉" + qtype_to_name[q.type];
-    e.appendChild(header)
+        end: function() {},
 
-    // content
+        trans: null,
+        index: 0,
+        length: 0,
+        word: "",
+        need_reveal: false,
+    },
+};
+
+const bar = {
+    time: 5000, // in ms
+    full: 5000, // in ms
+    interval: null,
+    onclick_go_options: false,
+    danger: false,
+
+    set_timer(millis) {
+        this.time = this.full = millis;
+    },
     
-    main = document.createElement("h3");
-    main.innerHTML = q.question.replace("。", "");
-    e.appendChild(main);
+    start_timer() {
+        this.danger = false;
+        document.getElementById("container").classList.remove("danger");
+        document.getElementById("bar-inner").classList.remove("cyan");
 
-    // answer
+        this.interval = setInterval(() => {
+            this.time -= MSPF
+            if (this.time < 0) return end();
+            if (this.time < 2000 && !this.danger) {
+                document.getElementById("container").classList.add("danger");
+                this.danger = true;
+            }
+            if (this.time >= 2000 && this.danger) {
+                document.getElementById("container").classList.remove("danger");
+                this.danger = false;
+            }
+            document.getElementById("bar-inner").style.width = `${this.time / this.full * 100}%`;
+        }, MSPF);
+    },
+
+    stop_timer() {
+        clearInterval(this.interval);
+        this.interval = null;
+        this.onclick_go_options = true;
+        document.getElementById("bar-inner").style.width = "100%";
+        document.getElementById("bar-inner").classList.add("cyan");
+        document.getElementById("bar-inner").innerText = "Done";
+
+        this.danger = false;
+        document.getElementById("container").classList.remove("danger");
+    },
+
+    idle() {
+        this.onclick_go_options = false;
+        document.getElementById("bar-inner").style.width = "100%";
+        document.getElementById("bar-inner").classList.add("cyan");
+    },
+}
+
+// current state
+let mode = null;
+let started = false;
+let running = false; // do clicks triger advance()?
+let text = "";
+
+
+function prepare(text_object) {
+    hide_options();
+
+    text = text_object.text;
+
+    mode = MODES[document.querySelector('input[type = radio][name = mode]:checked').value];
+
+    document.getElementById("main").innerHTML = "<span style='color: grey;'>點擊開始 ...</span>";
+    document.getElementById("bar-inner").innerText = "";
+
+    bar.set_timer(parseInt(document.getElementById("secs").innerText) * 1000);
+    bar.idle();
+
+    running = true;
+    started = false;
     
-    answer = document.createElement("h3")
-    answer.innerText = q.answer;
-    answer.classList.add("red");
-    answer.style.opacity = 0;
-    e.appendChild(answer);
-
-    ans = e.cloneNode(deep=true);
-    ans.children[2].style.opacity = 1;
-
-    queue.push(e);
-    queue.push(ans);
-}
-
-function push_questions() {
-    // pushes questions from queue to scroller
-    const scroller = document.getElementById("scroller");
-    while (scroller.children.length < 2) {
-        scroller.appendChild(queue.shift());
+    if (text_object.long) {
+        document.getElementById("main").classList.add("long");
+    } else {
+        document.getElementById("main").classList.remove("long");
     }
+
+    document.body.requestFullscreen();
+
+    mode.prepare(text_object);
 }
 
-
-// Handlers
-
-
-function update_settings() {
-    allowed_parents = new Set([... document.querySelectorAll("fieldset div input[type = checkbox]")].filter(e => e.checked).map(e => e.value));
+function end() {
+    running = false;
+    bar.stop_timer();
+    mode?.end();
+    mode = null;
 }
 
-function toggle_modal() {
-    const modal = document.getElementById("modal");
-    modal.style.display = modal.style.display == "none" || modal.style.display == "" ? "block" : "none";
-    update_settings();
+function show_options() {
+    document.getElementById("options").style.display = "block";
+    document.getElementById("container").style.display = "none";
+    document.exitFullscreen();
+    window.location.href = "#";
 }
 
-function reveal() {
-    if (showing_answer) return;
-    showing_answer = true;
-    // [q] <a>
-    document.getElementById("scroller").children[0].children[2].style.opacity = 1;
-    // [a] <a>
-    document.getElementById("scroller").children[1].remove();
-    // [a]
+function hide_options() {
+    document.getElementById("options").style.display = "none";
+    document.getElementById("container").style.display = "flex";
+    window.location.href = "#runner";
+}
 
-    score++;
-
-    if (document.getElementById("scroller").children.length == 1) {
-        new_question();
-        // [a] <q> <a>
+addEventListener(
+    window.matchMedia("(any-hover: none)").matches
+        ? "touchstart" // no hovering = no mouse
+        : "mousedown",
+    () => {
+        if (!running) return
+        
+        if (!started) {
+            // first click
+            if (mode.timer) bar.start_timer();
+            started = true;
+        }
+        
+        bar.time = Math.min(bar.time + 1000, bar.full);
+        mode.advance();
     }
-    push_questions();
-}
-
-function set_checkboxes(val) {
-    document.querySelectorAll("fieldset div input[type = checkbox]")
-    .forEach(
-        e => e.checked = val
-    )
-}
-
-
-// Listeners
-
+);
 
 document.addEventListener("DOMContentLoaded", () => {
-    const select_parent = document.getElementById("select_parent");
-    parents.forEach(p => {
-        div = document.createElement("div");
 
-        let input = Object.assign(
-            document.createElement("input"),
-            {
-                id: "parent-" + p,
-                type: "checkbox",
-                value: p,
-                checked: true,
-            }
-        )
-        div.appendChild(input);
+    // bar click listener
 
-        label = document.createElement("label");
-        label.htmlFor = "parent-" + p;
-        label.innerText = p;
-        div.appendChild(label);
-
-        select_parent.appendChild(div);
-    });
-
-
-    document.body.style.overflow = "hidden";
-    const scroller = document.getElementById("scroller");
-    new_question();
-    push_questions();
-    // [q] <a>
-    
-    scroller.addEventListener("scrollend", e => {
-        if (scroller.children[1].getBoundingClientRect().y < 100) {
-            // <q> [a]  or  <a> [q] <a>
-            scroller.removeChild(scroller.children[0]);
-            // [a] or [q] <a>
-            showing_answer = !showing_answer;
-            if (showing_answer) {
-                // [a] <q> <a>
-                new_question();
-                score++;
-            };
-            push_questions();
+    document.getElementById("bar-inner").onclick = ("click", () => {
+        if (bar.onclick_go_options) {
+            document.getElementById("bar-inner").innerText = "";
+            bar.onclick_go_options = false;
+            show_options();
         }
     });
 
-    update_settings();
+    // set up texts
 
+    let options = document.getElementById("options");
+    let last_prefix = "";
+    for (key in TEXTS) {
+        let prefix = key.split("-")[0];
+        if (prefix != last_prefix) {
+            last_prefix = prefix;
+            options.appendChild(document.createElement("hr"));
+        }
+        let btn = document.createElement("button");
+        btn.innerText = key;
+        btn.onclick = e => {
+            prepare(TEXTS[e.target.innerText]);
+        }
+        options.appendChild(btn);
+    }
+    show_options();
 });
+
+window.onhashchange = () => {
+    if (window.location.hash == "") {
+        end();
+        show_options();
+    }
+};

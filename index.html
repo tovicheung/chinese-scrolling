@@ -1,34 +1,144 @@
-
-<meta charset="utf-8">
-
+<head>
+    <title>Chinese</title>
+    <meta charset="utf-8">
+    <meta name="description" content="十二篇範文">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-<link rel="stylesheet" href="styles/global.css">
+    <link rel="stylesheet" href="styles/global.css">
 
-<!-- for some mysterious reason this p element prevents the toolbar in chrome mobile from hiding and stablizes scrolling,
-i have no idea why so here it stays -->
-<p style="height: 1px;"></p>
+    <style>
+        * {
+            -webkit-touch-callout: none; /* iOS Safari */
+            -webkit-user-select: none; /* Safari */
+            -khtml-user-select: none; /* Konqueror HTML */
+            -moz-user-select: none; /* Old versions of Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none;
+            margin: 0;
+            border: 0;
+        }
 
-<div id="scroller"></div>
+        #container {
+            height: 100%;
+            padding: 7vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
 
-<div id="menu">
-    <button class="icon" onclick="reveal()"><span class="material-symbols-outlined">visibility</span></button>
-    <button class="icon" onclick="toggle_modal()"><span class="material-symbols-outlined">collections_bookmark</span></button>
-    <button class="icon" onclick="window.location.href = 'mem.html'"><span class="material-symbols-outlined">bolt</span></button>
-</div>
+        #main {
+            width: 100%;
+            font-size: 3vh;
+            font-weight: bold;
+        }
 
-<div id="modal">
-    <fieldset id="select_parent">
-        <legend>選擇文章</legend>
-    </fieldset>
-    <button onclick="set_checkboxes(true)">全選</button>
-    <button onclick="set_checkboxes(false)">全不選</button>
-    <button id="exit-modal" class="icon" onclick="toggle_modal()"><span class="material-symbols-outlined">redo</span></button>
-</div>
+        #main.long {
+            font-size: 2vh !important;
+        }
 
-<div id="stats">
-    <p id="stats_score">ABC</p>
-</div>
+        #bar-outer {
+            width: 80vw;
+            height: 2vh;
+            border-radius: 99px;
+            margin-bottom: 10px;
+            background-color: rgb(236, 98, 98);
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-start;
+        }
 
-<script src="data/questions.js"></script>
-<script src="main.js"></script>
+        #bar-inner {
+            height: 100%;
+            border-radius: 99px;
+            background-color: rgb(60, 194, 60);
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            font-size: 70%;
+        }
+
+        #bar-inner.cyan {
+            background-color: rgb(47, 181, 234)
+        }
+
+        .grow {
+            flex-grow: 4;
+        }
+
+        input[type = range] {
+            width: 100%;
+            height: 1vh;
+            padding: 10px;
+            background-color: red;
+            outline: none;
+            flex-grow: 1;
+        }
+
+        #options {
+            left: 0;
+            top: 0;
+            width: 100%;
+            padding: 10px;
+            display: none;
+            z-index: 20;
+            background-color: #edffe5;
+        }
+
+        #controls {
+            border: 3px solid #023047;
+            margin: 15px;
+        }
+
+        hr {
+            border: 1px solid gray;
+            margin: 10px;
+        }
+
+        .danger {
+            animation: danger 0.6s infinite;
+        }
+
+        @keyframes danger {
+            0%, 100% {
+                background-color: #f8fafc;
+            }
+            50% {
+                background-color: rgba(255, 0, 0, 0.3);
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+    <div id="options">
+        <h2>計時: <span id=secs>7</span>s</h2>
+        <input type="range" id="control-timer" min="5" max="10" value="7" oninput="document.getElementById('secs').innerText = this.value">
+        <br><br>
+        <div style="display: flex; flex-direction: row; gap: 8px;">
+        <input type="radio" id="mode0" name="mode" value="mode0">
+        <label for="mode0">原文</label><br>
+        <input type="radio" id="mode1" name="mode" value="mode1" checked>
+        <label for="mode1">斷字</label><br>
+        <input type="radio" id="mode2" name="mode" value="mode2">
+        <label for="mode2">斷句</label><br>
+        <input type="radio" id="mode3" name="mode" value="mode3">
+        <label for="mode3">譯字</label>
+    </div>
+        <br>
+        <h2>選擇文章</h2>
+    </div>
+
+    <!-- Main runner -->
+    <div id="container">
+        <div class="grow"></div>
+        <p id="main"></p>
+        <div class="grow"></div>
+        <div id="bar-outer">
+            <div id="bar-inner"></div>
+        </div>
+    </div>
+
+    <script src="data/texts.js"></script>
+    <script src="main.js"></script>
+</body>
