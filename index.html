@@ -1,10 +1,9 @@
 <head>
-    <title>Chinese</title>
+    <title>DSE 中文 十二篇範文</title>
     <meta charset="utf-8">
     <meta name="description" content="十二篇範文">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles/global.css">
-
     <style>
         * {
             -webkit-touch-callout: none; /* iOS Safari */
@@ -62,16 +61,7 @@
         }
 
         .grow {
-            flex-grow: 4;
-        }
-
-        input[type = range] {
-            width: 100%;
-            height: 1vh;
-            padding: 10px;
-            background-color: red;
-            outline: none;
-            flex-grow: 1;
+            flex-grow: 2;
         }
 
         #options {
@@ -85,11 +75,20 @@
         }
 
         #controls {
-            border: 3px solid #023047;
-            margin: 15px;
+            max-width: max-content;
+            margin: auto;
+            padding: 20px;
         }
 
-        hr {
+        #control-timer {
+            width: 100%;
+            height: 1vh;
+            margin: 10px;
+            outline: none;
+            flex-grow: 1;
+        }
+
+        hr { /* dynamically generated, not present in html */
             border: 1px solid gray;
             margin: 10px;
         }
@@ -112,19 +111,21 @@
 
 <body>
     <div id="options">
-        <h2>計時: <span id=secs>7</span>s</h2>
-        <input type="range" id="control-timer" min="5" max="10" value="7" oninput="document.getElementById('secs').innerText = this.value">
-        <br><br>
-        <div style="display: flex; flex-direction: row; gap: 8px;">
-        <input type="radio" id="mode0" name="mode" value="mode0">
-        <label for="mode0">原文</label><br>
-        <input type="radio" id="mode1" name="mode" value="mode1" checked>
-        <label for="mode1">斷字</label><br>
-        <input type="radio" id="mode2" name="mode" value="mode2">
-        <label for="mode2">斷句</label><br>
-        <input type="radio" id="mode3" name="mode" value="mode3">
-        <label for="mode3">譯字</label>
-    </div>
+        <div id="controls">
+            <h3>時限: <span id=secs>7</span>s</h3>
+            <input type="range" id="control-timer" min="5" max="10" value="7" oninput="document.getElementById('secs').innerText = this.value">
+            <br><br>
+            <div style="display: flex; flex-direction: row; gap: 8px;">
+                <input type="radio" id="mode0" name="mode" value="mode0">
+                <label for="mode0">原文</label><br>
+                <input type="radio" id="mode1" name="mode" value="mode1" checked>
+                <label for="mode1">斷字</label><br>
+                <input type="radio" id="mode2" name="mode" value="mode2">
+                <label for="mode2">斷句</label><br>
+                <input type="radio" id="mode3" name="mode" value="mode3">
+                <label for="mode3">譯字</label>
+            </div>
+        </div>
         <br>
         <h2>選擇文章</h2>
     </div>
