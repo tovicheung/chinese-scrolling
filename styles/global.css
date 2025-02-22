@@ -13,59 +13,8 @@ body {
     font-family: Inter, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-sans;
 }
 
-body::backdrop {
+body::backdrop { /* for fullscreen */
     background-color: #f8fafc;
-}
-
-fieldset {
-    padding: 15px;
-    overflow-inline: hidden;
-}
-
-fieldset > div {
-    display: inline;
-    margin: 10px;
-}
-
-fieldset > div > * {
-    cursor: pointer;
-}
-
-#scroller {
-    height: 100%;
-    width: 100%;
-    overflow-y: scroll;
-    scroll-snap-type: y mandatory;
-}
-
-#scroller > section {
-    scroll-snap-align: start;
-    height: 100%;
-    font-size: 30;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding-bottom: 25vh;
-}
-
-#scroller > section > h3 {
-    font-size: 7vw;
-}
-
-#scroller > section > h5 {
-    font-size: 4vw;
-}
-
-#menu {
-    position: absolute;
-    z-index: 10;
-    bottom: 0;
-    right: 0;
-    display: flex;
-    flex-direction: column;
-    padding: 4vh;
-    gap: 4vh;
 }
 
 button.icon {
@@ -102,44 +51,6 @@ button:not(.icon):hover {
     'GRAD' 0,
     'opsz' 24;
     font-size: 5vh !important;
-}
-
-#modal {
-    position: fixed;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: 100%;
-    padding: 30px;
-    display: none;
-    z-index: 20;
-    background-color: #edffe5;
-}
-
-#modal > * {
-    font-size: 20px;
-}
-
-#exit-modal {
-    bottom: 40px;
-    right: 40px;    
-    position: absolute;
-}
-
-#stats {
-    z-index: 30;
-    background-color: lightgrey;
-    top: 0;
-    left: 0;
-    position: fixed;
-    display: none;
-    padding-right: 3cm;
-}
-
-#stats > p {
-    font-size: 5vh;
-    user-select: none;
-    margin: 14px;
 }
 
 .blue {
