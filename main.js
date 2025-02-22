@@ -13,12 +13,12 @@ const MODES = {
 
         prepare(text_object) {
             document.getElementById("main").innerHTML = this.pre_gen = text;
-            real_index = 0;
-            iter_index = 0;
+            var real_index = 0;
+            var iter_index = 0;
             for (const [t_index, [_t_length, t_word]] of Object.entries(text_object["translations"])) {
                 iter_index += t_index - real_index;
                 real_index = t_index;
-                snippet = `<span class="small">${t_word}</span>`;
+                const snippet = `<span class="small">${t_word}</span>`;
                 this.pre_gen = this.pre_gen.substring(0, iter_index+1) + snippet + this.pre_gen.substring(iter_index+1);
                 iter_index += snippet.length;
             }
@@ -163,10 +163,10 @@ const bar = {
 }
 
 // current state
-let mode = null;
-let started = false;
-let running = false; // do clicks triger advance()?
-let text = "";
+var mode = null;
+var started = false;
+var running = false; // do clicks triger advance()?
+var text = "";
 
 
 function prepare(text_object) {
@@ -216,6 +216,10 @@ function hide_options() {
     window.location.href = "#runner";
 }
 
+function radioChange() {
+    loadTextButtons(document.querySelector('input[type = radio][name = mode]:checked').value == "mode3");
+}
+
 addEventListener(
     window.matchMedia("(any-hover: none)").matches
         ? "touchstart" // no hovering = no mouse
@@ -234,6 +238,35 @@ addEventListener(
     }
 );
 
+function isEmpty(obj) {
+    for (const prop in obj) {
+        if (Object.hasOwn(obj, prop)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function loadTextButtons(special=false) {
+    let div = document.getElementById("text-buttons");
+    while (div.hasChildNodes()) div.removeChild(div.lastChild);
+    let last_prefix = "";
+    for (key in TEXTS) {
+        if (special && isEmpty(TEXTS[key].translations)) continue;
+        let prefix = key.split("-")[0];
+        if (prefix != last_prefix) {
+            last_prefix = prefix;
+            div.appendChild(document.createElement("hr"));
+        }
+        let btn = document.createElement("button");
+        btn.innerText = key;
+        btn.onclick = e => {
+            prepare(TEXTS[e.target.innerText]);
+        }
+        div.appendChild(btn);
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
 
     // bar click listener
@@ -246,23 +279,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // set up texts
-
-    let options = document.getElementById("options");
-    let last_prefix = "";
-    for (key in TEXTS) {
-        let prefix = key.split("-")[0];
-        if (prefix != last_prefix) {
-            last_prefix = prefix;
-            options.appendChild(document.createElement("hr"));
-        }
-        let btn = document.createElement("button");
-        btn.innerText = key;
-        btn.onclick = e => {
-            prepare(TEXTS[e.target.innerText]);
-        }
-        options.appendChild(btn);
-    }
+    loadTextButtons();
     show_options();
 });
 

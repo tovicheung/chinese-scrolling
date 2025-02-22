@@ -68,6 +68,7 @@
             left: 0;
             top: 0;
             width: 100%;
+            min-height: 100%;
             padding: 10px;
             display: none;
             z-index: 20;
@@ -116,18 +117,19 @@
             <input type="range" id="control-timer" min="5" max="10" value="7" oninput="document.getElementById('secs').innerText = this.value">
             <br><br>
             <div style="display: flex; flex-direction: row; gap: 8px;">
-                <input type="radio" id="mode0" name="mode" value="mode0">
+                <input type="radio" id="mode0" name="mode" value="mode0" onchange="radioChange()">
                 <label for="mode0">原文</label><br>
-                <input type="radio" id="mode1" name="mode" value="mode1" checked>
+                <input type="radio" id="mode1" name="mode" value="mode1" onchange="radioChange()" checked>
                 <label for="mode1">斷字</label><br>
-                <input type="radio" id="mode2" name="mode" value="mode2">
+                <input type="radio" id="mode2" name="mode" value="mode2" onchange="radioChange()">
                 <label for="mode2">斷句</label><br>
-                <input type="radio" id="mode3" name="mode" value="mode3">
+                <input type="radio" id="mode3" name="mode" value="mode3" onchange="radioChange()">
                 <label for="mode3">譯字</label>
             </div>
         </div>
         <br>
         <h2>選擇文章</h2>
+        <div id="text-buttons"></div>
     </div>
 
     <!-- Main runner -->
