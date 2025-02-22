@@ -80,6 +80,31 @@
             margin: auto;
             padding: 20px;
         }
+        
+        #radios {
+            display: flex;
+            flex-direction: row;
+            gap: 4px;
+            padding: 4px;
+        }
+
+        #radios > input {
+            display: none;
+        }
+
+        #radios > label {
+            padding: 8px 16px;
+            border-radius: 8px;
+        }
+
+        #radios > label:hover {
+            background-color: lightgray;
+        }
+
+        #radios > input:checked + label {
+            color: white;
+            background-color: #023047;
+        }
 
         #control-timer {
             width: 100%;
@@ -116,7 +141,7 @@
             <h3>時限: <span id=secs>7</span>s</h3>
             <input type="range" id="control-timer" min="5" max="10" value="7" oninput="document.getElementById('secs').innerText = this.value">
             <br><br>
-            <div style="display: flex; flex-direction: row; gap: 8px;">
+            <div id="radios">
                 <input type="radio" id="mode0" name="mode" value="mode0" onchange="radioChange()">
                 <label for="mode0">原文</label><br>
                 <input type="radio" id="mode1" name="mode" value="mode1" onchange="radioChange()" checked>
