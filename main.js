@@ -169,15 +169,20 @@ var running = false; // do clicks triger advance()?
 var text = "";
 
 
-function prepare(text_object) {
+function prepareId(textId) {
     hide_options();
-
+    
+    const text_object = TEXTS[textId];
     text = text_object.text;
 
     mode = MODES[document.querySelector('input[type = radio][name = mode]:checked').value];
 
     document.getElementById("main").innerHTML = "<span style='color: grey;'>點擊開始 ...</span>";
     document.getElementById("bar-inner").innerText = "";
+    
+    // title
+    document.getElementById("title-textId").innerText = textId;
+    document.getElementById("title-mode").innerText = document.querySelector('input[type = radio][name = mode]:checked').labels[0].innerText;
 
     bar.set_timer(parseInt(document.getElementById("secs").innerText) * 1000);
     bar.idle();
@@ -261,7 +266,7 @@ function loadTextButtons(special=false) {
         let btn = document.createElement("button");
         btn.innerText = key;
         btn.onclick = e => {
-            prepare(TEXTS[e.target.innerText]);
+            prepareId(e.target.innerText);
         }
         div.appendChild(btn);
     }
