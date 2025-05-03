@@ -1,0 +1,177 @@
+<head>
+    <title>DSE 中文 十二篇範文</title>
+    <meta charset="utf-8">
+    <meta name="description" content="十二篇範文">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/global.css">
+    <style>
+        * {
+            -webkit-touch-callout: none; /* iOS Safari */
+            -webkit-user-select: none; /* Safari */
+            -khtml-user-select: none; /* Konqueror HTML */
+            -moz-user-select: none; /* Old versions of Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none;
+            margin: 0;
+            border: 0;
+        }
+
+        #container {
+            height: 100%;
+            padding: 7vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #main {
+            width: 100%;
+            font-size: 3vh;
+            font-weight: bold;
+        }
+
+        #main.long {
+            font-size: 2vh !important;
+        }
+
+        #bar-outer {
+            width: 80vw;
+            height: 2vh;
+            border-radius: 99px;
+            margin-bottom: 10px;
+            background-color: rgb(236, 98, 98);
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-start;
+        }
+
+        #bar-inner {
+            height: 100%;
+            border-radius: 99px;
+            background-color: rgb(60, 194, 60);
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            font-size: 70%;
+        }
+
+        #bar-inner.cyan {
+            background-color: rgb(47, 181, 234)
+        }
+
+        .grow {
+            flex-grow: 2;
+        }
+
+        #options {
+            left: 0;
+            top: 0;
+            width: 100%;
+            min-height: 100%;
+            padding: 10px;
+            display: none;
+            z-index: 20;
+            background-color: #edffe5;
+        }
+
+        #controls {
+            max-width: max-content;
+            margin: auto;
+            padding: 20px;
+        }
+        
+        #radios {
+            display: flex;
+            flex-direction: row;
+            gap: 4px;
+            padding: 4px;
+        }
+
+        #radios > input {
+            display: none;
+        }
+
+        #radios > label {
+            padding: 8px 16px;
+            border-radius: 8px;
+        }
+
+        #radios > label:hover {
+            background-color: lightgray;
+        }
+
+        #radios > input:checked + label {
+            color: white;
+            background-color: #023047;
+        }
+
+        #control-timer {
+            width: 100%;
+            height: 1vh;
+            margin: 10px;
+            outline: none;
+            flex-grow: 1;
+        }
+
+        hr { /* dynamically generated, not present in html */
+            border: 1px solid gray;
+            margin: 10px;
+        }
+
+        .danger {
+            animation: danger 0.6s infinite;
+        }
+
+        @keyframes danger {
+            0%, 100% {
+                background-color: #f8fafc;
+            }
+            50% {
+                background-color: rgba(255, 0, 0, 0.3);
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+    <div id="options">
+        <div id="controls">
+            <h3>時限: <span id=secs>7</span>s</h3>
+            <input type="range" id="control-timer" min="5" max="10" value="7" oninput="document.getElementById('secs').innerText = this.value">
+            <br><br>
+            <div id="radios">
+                <input type="radio" id="mode0" name="mode" value="mode0" onchange="radioChange()">
+                <label for="mode0">原文</label><br>
+                <input type="radio" id="mode1" name="mode" value="mode1" onchange="radioChange()" checked>
+                <label for="mode1">斷字</label><br>
+                <input type="radio" id="mode2" name="mode" value="mode2" onchange="radioChange()">
+                <label for="mode2">斷句</label><br>
+                <input type="radio" id="mode3" name="mode" value="mode3" onchange="radioChange()">
+                <label for="mode3">譯字</label>
+            </div>
+        </div>
+        <br>
+        <h2>選擇文章</h2>
+        <div id="text-buttons"></div>
+    </div>
+
+    <!-- Main runner -->
+    <div id="container">
+        <div style="display: flex; flex-direction: row; font-size: 18px; align-items: center; width: 100%;">
+            <h2 id="title"><span id="title-textId"></span> <span id="title-mode" style="color: #11874e;"></span></h2>
+            <div class="grow"></div>
+            <!-- <button>退出</button> -->
+        </div>
+        <div class="grow"></div>
+        <p id="main"></p>
+        <div class="grow"></div>
+        <div id="bar-outer">
+            <div id="bar-inner"></div>
+        </div>
+    </div>
+
+    <script src="data/texts.js"></script>
+    <script src="main.js"></script>
+</body>

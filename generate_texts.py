@@ -18,19 +18,24 @@ def generate_from_lines(base_name: str, lines: list[str], config: Config):
 
     while len(lines[0].strip("\n")) == 0:
         lines.pop(0)
+    
+    def report_done():
+        key = f"{base_name}-#{para_counter}"
+        TEXTS[key] = {
+            "text": paragraph,
+            "translations": translations,
+            "long": config.long,
+        }
+        # chinese characters take up double the space
+        npad = 18 - len(base_name) * 2 - 2 - len(str(para_counter))
+        print("Generated", key, " " * npad, f"({len(translations)} translates)".ljust(15), paragraph[:15], "...")
 
     for raw_line in lines:
         line = raw_line.strip("\n ")
 
         if len(line) == 0:
             # new paragraph
-            key = f"{base_name}-#{para_counter}"
-            TEXTS[key] = {
-                "text": paragraph,
-                "translations": translations,
-                "long": config.long,
-            }
-            print("Generated", key, paragraph[:15], "...")
+            report_done()
             para_counter += 1
             paragraph = ""
 
@@ -67,13 +72,7 @@ def generate_from_lines(base_name: str, lines: list[str], config: Config):
             paragraph += processed_text
         
     if paragraph:
-        key = f"{base_name}-#{para_counter}"
-        TEXTS[key] = {
-            "text": paragraph,
-            "translations": translations,
-            "long": config.long,
-        }
-        print("Generated", key, paragraph[:15], "...")
+        report_done()
 
 
 for file in os.listdir("texts.ignore"):
