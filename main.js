@@ -168,6 +168,37 @@ var started = false;
 var running = false; // do clicks triger advance()?
 var text = "";
 
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
+function randInt(a, b) {
+    return Math.floor(Math.random() * (b - a)) + a;
+}
+
+function randomColor() {
+    // needs to be visible
+
+    const vals = [
+        randInt(0x00, 0xaa),
+        randInt(0x22, 0xcc),
+        randInt(0x33, 0xff),
+    ];
+
+    shuffleArray(vals);
+
+    return "#" + vals.map(x => x.toString(16).padStart(2, "0")).join("");
+
+    // old algo: since it's random the color is always grey-ish
+    var hex = "#";
+    for (var i = 0; i < 3; i++) {
+        hex += Math.floor(Math.random() * 100).toString().padStart(2, "0");
+    }
+    return hex;
+}
 
 function prepareId(textId) {
     hide_options();
@@ -197,6 +228,11 @@ function prepareId(textId) {
     }
 
     document.body.requestFullscreen();
+
+    if (document.getElementById("randomize-styles").checked) {
+        const mainStyle = document.getElementById("main").style;
+        mainStyle.color = randomColor();
+    }
 
     mode.prepare(text_object);
 }

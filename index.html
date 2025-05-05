@@ -27,7 +27,7 @@
 
         #main {
             width: 100%;
-            font-size: 3vh;
+            font-size: 1.2em;
             font-weight: bold;
         }
 
@@ -107,7 +107,6 @@
         }
 
         #control-timer {
-            width: 100%;
             height: 1vh;
             margin: 10px;
             outline: none;
@@ -138,9 +137,11 @@
 <body>
     <div id="options">
         <div id="controls">
-            <h3>時限: <span id=secs>7</span>s</h3>
-            <input type="range" id="control-timer" min="5" max="10" value="7" oninput="document.getElementById('secs').innerText = this.value">
-            <br><br>
+            <div style="display: flex; flex-direction: row;">
+                <h3>時限: <span id=secs>7</span>s</h3>
+                <input type="range" id="control-timer" min="5" max="10" value="7" oninput="document.getElementById('secs').innerText = this.value">
+            </div>
+            <br>
             <div id="radios">
                 <input type="radio" id="mode0" name="mode" value="mode0" onchange="radioChange()">
                 <label for="mode0">原文</label><br>
@@ -150,6 +151,10 @@
                 <label for="mode2">斷句</label><br>
                 <input type="radio" id="mode3" name="mode" value="mode3" onchange="radioChange()">
                 <label for="mode3">譯字</label>
+            </div>
+            <div>
+                <input type="checkbox" id="randomize-styles" onchange="randomizeStylesChange()" checked>
+                <label for="randomize-styles">randomize styles</label>
             </div>
         </div>
         <br>
