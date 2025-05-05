@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&display=swap');
+
 * {
     box-sizing: border-box;
     margin: 0;
@@ -10,7 +12,7 @@ body {
     background-color: #f8fafc;
     color: #023047;
     accent-color: #82d0cc;
-    font-family: Inter, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-sans;
+    font-family: "Segoe UI";
 }
 
 body::backdrop { /* for fullscreen */

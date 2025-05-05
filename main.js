@@ -15,11 +15,11 @@ const MODES = {
             document.getElementById("main").innerHTML = this.pre_gen = text;
             var real_index = 0;
             var iter_index = 0;
-            for (const [t_index, [_t_length, t_word]] of Object.entries(text_object["translations"])) {
+            for (const [t_index, [t_length, t_word]] of Object.entries(text_object["translations"])) {
                 iter_index += t_index - real_index;
                 real_index = t_index;
                 const snippet = `<span class="small">${t_word}</span>`;
-                this.pre_gen = this.pre_gen.substring(0, iter_index+1) + snippet + this.pre_gen.substring(iter_index+1);
+                this.pre_gen = this.pre_gen.substring(0, iter_index + t_length) + snippet + this.pre_gen.substring(iter_index + t_length);
                 iter_index += snippet.length;
             }
         },
@@ -232,6 +232,8 @@ function prepareId(textId) {
     if (document.getElementById("randomize-styles").checked) {
         const mainStyle = document.getElementById("main").style;
         mainStyle.color = randomColor();
+        const fontSize = document.getElementById("main").computedStyleMap().get("font-size");
+        mainStyle.fontSize = `${fontSize.value * (randInt(85, 115) / 100)}${fontSize.unit}`;
     }
 
     mode.prepare(text_object);
