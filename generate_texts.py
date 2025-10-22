@@ -8,6 +8,7 @@ class Config:
     long: bool = False # use smaller font when rendering?
 
 TEXTS = {}
+TEXTS2 = {}
 
 def generate_from_lines(base_name: str, lines: list[str], config: Config):
     para_counter = config.start_paragraph
@@ -15,6 +16,8 @@ def generate_from_lines(base_name: str, lines: list[str], config: Config):
 
     index = 0
     translations = {}
+
+    TEXTS2[base_name] = {}
 
     while len(lines[0].strip("\n")) == 0:
         lines.pop(0)
@@ -29,6 +32,11 @@ def generate_from_lines(base_name: str, lines: list[str], config: Config):
         # chinese characters take up double the space
         npad = 18 - len(base_name) * 2 - 2 - len(str(para_counter))
         print("Generated", key, " " * npad, f"({len(translations)} translates)".ljust(15), paragraph[:15], "...")
+
+        TEXTS2[base_name][para_counter] = {
+            "text": paragraph,
+            "translations": translations,
+        }
 
     for raw_line in lines:
         line = raw_line.strip("\n ")
@@ -89,4 +97,9 @@ for file in os.listdir("texts.ignore"):
 with open("data/texts.js", "w", encoding = "utf-8") as f:
     f.write("// This file is generated.\n\nconst TEXTS = ")
     f.write(json.dumps(TEXTS))
+    f.write("\n")
+
+with open("data/texts2.js", "w", encoding = "utf-8") as f:
+    f.write("// This file is generated.\n\nconst TEXTS = ")
+    f.write(json.dumps(TEXTS2))
     f.write("\n")
