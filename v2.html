@@ -4,18 +4,31 @@
     <meta name="description" content="十二篇範文">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        * {
-            box-sizing: border-box;
-        }
         body {
             margin: 0;
             background-color: #fcfcfc;
             width: 100%;
             height: 100%;
         }
+
+        body > div {
+            display: none;
+            padding: 20px;
+        }
+
+        .screen-active {
+            display: block;
+        }
+
+        .container {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin: 0px auto;
+            padding: 20px 30px;
+            border-radius: 6px;
+        }
         
         #card-container {
-            padding: 20px;
             width: 100%;
             display: flex;
             flex-direction: row;
@@ -25,7 +38,7 @@
         }
 
         .card {
-            width: 200px;
+            width: 300px;
             height: 150px; 
 
             background-color: #ffffff;
@@ -64,11 +77,12 @@
             color: black;
             border-radius: 6px;
             border: 1px solid gray;
-            padding: 8px 12px;
+            padding: 4px 12px;
             font-size: 1rem;
             font-weight: 500;
             cursor: pointer;
             box-shadow: none;
+            background-color: transparent;
 
             transition: background-color ease-in-out 0.1s;
         }
@@ -77,14 +91,75 @@
             background-color: #cee1ff;
         }
 
+        .card-controls {
+            width: 100%;
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        #m1-list p {
+            padding-top: 20px;
+            font-size: 1.3em;
+        }
+
+        #m1-list .numbering {
+            padding-right: 20px;
+            font-family: Arial, Helvetica, sans-serif;
+            color: gray;
+        }
     </style>
 </head>
 
 <body>
-    <div id="card-container"></div>
+    <div id="screen0" class="screen-active">
+        <div id="card-container"></div>
+    </div>
+    <div id="screen1">
+        <div class="container">
+            <h1><span id="m1-title"></span> 原文</h1>
+            <button onclick="switchScreen(0)">Back</button>
+            <div id="m1-list"></div>
+        </div>
+    </div>
+    <div id="screen404">
+        <div class="container">
+            <h1>Not Found</h1>
+            <button onclick="switchScreen(0)">Back</button>
+        </div>
+    </div>
 </body>
 <script src="data/texts2.js"></script>
 <script>
+    function switchScreen(n, params = {}, push = true) {
+        const active = document.querySelector(".screen-active");
+        if (active) active.classList.remove("screen-active");
+        const el = document.getElementById(`screen${n}`);
+        if (el) {
+            el.classList.add("screen-active");
+        } else {
+            switchScreen(404);
+        }
+
+        if (push) {
+            const url = new URL(window.location.href);
+            url.search = "";
+            url.searchParams.set("screen", String(n));
+            for (const [k, v] of Object.entries(params || {})) {
+                if (v === null || v === undefined) {
+                    url.searchParams.delete(k);
+                } else {
+                    url.searchParams.set(k, String(v));
+                }
+            }
+            history.pushState({ screen: `screen${n}`, params: params || {} }, '', url.pathname + (url.search ? '?' + url.searchParams.toString() : ''));
+        }
+
+        if (n == 1) {
+            mode1(params.name);
+        }
+    }
     const ORDER = [
         "論仁",
         "論孝",
@@ -110,7 +185,19 @@
         [["論仁", "論孝", "論君子"], "#faf8ca"],
         [["念奴嬌", "聲聲慢", "青玉案"], "#f8d4fc"],
         [["逍遙遊", "始得西山宴遊記"], "#d6ffe0"],
-    ]
+    ];
+
+    function mode1(name) {
+        if (!(name in TEXTS)) {
+            switchScreen(404);
+        }
+        document.getElementById("m1-title").innerText = name;
+        const list = document.getElementById("m1-list");
+        list.innerHTML = "";
+        for (const key in TEXTS[name]) {
+            list.innerHTML += `<p><span class="numbering">${key}</span> ${TEXTS[name][key].text}</p>`
+        }
+    }
 
     for (const name of ORDER) {
         let color = "";
@@ -122,8 +209,41 @@
         document.getElementById("card-container").innerHTML += `
             <div class="card" style="background-color: ${color}">
                 <b>${name}</b>
-                <button>Start</button>
+                <div class="card-controls">
+                    <button onclick="switchScreen(1, { name: '${name}' })">原文</button>
+                    <button>背誦</button>
+                    <button>譯字</button>
+                </div>
             </div>
         `;
     }
+
+    window.addEventListener("popstate", e => {
+        let n = 0;
+        let paramsObj = {};
+        if (e.state && e.state.screen) {
+            const m = e.state.screen.match(/screen(\d+)/);
+            if (m) n = parseInt(m[1], 10);
+            paramsObj = e.state.params || {};
+        } else {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has("screen")) n = parseInt(params.get("screen"), 10) || 0;
+            params.forEach((v, k) => { if (k !== "screen") paramsObj[k] = v; });
+        }
+        switchScreen(n, paramsObj, false);
+    });
+
+    (() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.has("screen")) {
+            const n = parseInt(params.get("screen"), 10) || 0;
+            const paramsObj = {};
+            params.forEach((v, k) => { if (k !== "screen") paramsObj[k] = v; });
+            switchScreen(n, paramsObj, false);
+            history.replaceState({ screen: `screen${n}`, params: paramsObj }, "", window.location.pathname + window.location.search);
+        } else {
+            history.replaceState({ screen: "screen0", params: {} }, "", window.location.pathname);
+        }
+    })();
+
 </script>
