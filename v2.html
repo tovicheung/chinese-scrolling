@@ -19,14 +19,6 @@
         .screen-active {
             display: block;
         }
-
-        .container {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            max-width: 800px;
-            margin: 0px auto;
-            padding: 20px 30px;
-            border-radius: 6px;
-        }
         
         #card-container {
             width: 100%;
@@ -65,6 +57,16 @@
             }
         }
 
+        @media (min-width: 600px) {
+            .container {
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                max-width: 800px;
+                margin: 0px auto;
+                padding: 20px 30px;
+                border-radius: 6px;
+            }
+        }
+
         .card b {
             font-size: 1.3em;
         }
@@ -73,7 +75,7 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
         }
 
-        .card button {
+        button {
             color: black;
             border-radius: 6px;
             border: 1px solid gray;
@@ -87,8 +89,12 @@
             transition: background-color ease-in-out 0.1s;
         }
 
-        .card button:hover {
+        button:hover {
             background-color: #cee1ff;
+        }
+        
+        button.selected {
+            background-color: #a4c0ed;
         }
 
         .card-controls {
@@ -109,6 +115,22 @@
             font-family: Arial, Helvetica, sans-serif;
             color: gray;
         }
+        
+        #m2-btn-row {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .title-bar {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: start;
+        }
     </style>
 </head>
 
@@ -118,9 +140,21 @@
     </div>
     <div id="screen1">
         <div class="container">
-            <h1><span id="m1-title"></span> 原文</h1>
-            <button onclick="switchScreen(0)">Back</button>
+            <div class="title-bar">
+                <h1><span id="m1-title"></span> 原文</h1>
+                <button onclick="switchScreen(0)">Back</button>
+            </div>
             <div id="m1-list"></div>
+        </div>
+    </div>
+    <div id="screen2">
+        <div class="container">
+            <div class="title-bar">
+                <h1>背誦 <span id="m2-title"></span></h1>
+                <button onclick="switchScreen(0)">Back</button>
+            </div>
+            <div id="m2-btn-row"></div>
+            <hr>
         </div>
     </div>
     <div id="screen404">
@@ -133,13 +167,15 @@
 <script src="data/texts2.js"></script>
 <script>
     function switchScreen(n, params = {}, push = true) {
+        console.log("test!", n, params, push);
         const active = document.querySelector(".screen-active");
         if (active) active.classList.remove("screen-active");
         const el = document.getElementById(`screen${n}`);
         if (el) {
             el.classList.add("screen-active");
         } else {
-            switchScreen(404);
+            history.replaceState({ screen: n, params: params || {} }, "");
+            return;
         }
 
         if (push) {
@@ -153,13 +189,16 @@
                     url.searchParams.set(k, String(v));
                 }
             }
-            history.pushState({ screen: `screen${n}`, params: params || {} }, '', url.pathname + (url.search ? '?' + url.searchParams.toString() : ''));
+            history.pushState({ screen: n, params: params }, "", url.pathname + (url.search ? "?" + url.searchParams.toString() : ""));
         }
 
         if (n == 1) {
             mode1(params.name);
+        } else if (n == 2) {
+            mode2(params.name);
         }
     }
+
     const ORDER = [
         "論仁",
         "論孝",
@@ -189,7 +228,7 @@
 
     function mode1(name) {
         if (!(name in TEXTS)) {
-            switchScreen(404);
+            switchScreen(404, false);
         }
         document.getElementById("m1-title").innerText = name;
         const list = document.getElementById("m1-list");
@@ -197,6 +236,38 @@
         for (const key in TEXTS[name]) {
             list.innerHTML += `<p><span class="numbering">${key}</span> ${TEXTS[name][key].text}</p>`
         }
+    }
+
+    let currentPara = null;
+
+    function mode2(name) {
+        if (!(name in TEXTS)) {
+            switchScreen(404);
+        }
+        document.getElementById("m2-title").innerText = name;
+        const text = TEXTS[name];
+        const paras = document.getElementById("m2-btn-row");
+        paras.innerHTML = "";
+        for (const para in text) {
+            if (currentPara === null) {
+                currentPara = para;
+            }
+            paras.innerHTML += `<button data-para="${para}">#${para}</button>`
+        }
+        paras.querySelectorAll("button").forEach(btn => {
+            btn.onclick = () => {
+                currentPara = btn.getAttribute("data-para");
+                mode2Update();
+            }
+        });
+        mode2Update();
+    }
+
+    function mode2Update() {
+        const paras = document.getElementById("m2-btn-row");
+        paras.querySelectorAll("button").forEach(btn => {
+            btn.classList.toggle("selected", btn.getAttribute("data-para") == currentPara);
+        });
     }
 
     for (const name of ORDER) {
@@ -211,19 +282,19 @@
                 <b>${name}</b>
                 <div class="card-controls">
                     <button onclick="switchScreen(1, { name: '${name}' })">原文</button>
-                    <button>背誦</button>
+                    <button onclick="switchScreen(2, { name: '${name}' })">背誦</button>
                     <button>譯字</button>
                 </div>
             </div>
         `;
     }
 
+    // when browser nav is used
     window.addEventListener("popstate", e => {
         let n = 0;
         let paramsObj = {};
         if (e.state && e.state.screen) {
-            const m = e.state.screen.match(/screen(\d+)/);
-            if (m) n = parseInt(m[1], 10);
+            n = e.state.screen;
             paramsObj = e.state.params || {};
         } else {
             const params = new URLSearchParams(window.location.search);
@@ -233,16 +304,18 @@
         switchScreen(n, paramsObj, false);
     });
 
+    // on direct load, not pushState
     (() => {
+        console.log("test");
         const params = new URLSearchParams(window.location.search);
         if (params.has("screen")) {
-            const n = parseInt(params.get("screen"), 10) || 0;
+            let n = parseInt(params.get("screen"), 10) || 0;
             const paramsObj = {};
             params.forEach((v, k) => { if (k !== "screen") paramsObj[k] = v; });
+            history.replaceState({ screen: n, params: paramsObj }, "", window.location.pathname + window.location.search);
             switchScreen(n, paramsObj, false);
-            history.replaceState({ screen: `screen${n}`, params: paramsObj }, "", window.location.pathname + window.location.search);
         } else {
-            history.replaceState({ screen: "screen0", params: {} }, "", window.location.pathname);
+            history.replaceState({ screen: 0, params: {} }, "", window.location.pathname);
         }
     })();
 
