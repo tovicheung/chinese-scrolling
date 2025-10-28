@@ -82,7 +82,6 @@
             padding: 4px 12px;
             font-size: 1rem;
             font-weight: 500;
-            cursor: pointer;
             box-shadow: none;
             background-color: transparent;
 
@@ -91,6 +90,15 @@
 
         button:hover {
             background-color: #cee1ff;
+        }
+
+        button:not(:disabled) {
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.7;
+            background-color: gray;
         }
         
         button.selected {
@@ -107,7 +115,6 @@
 
         #m1-list p {
             padding-top: 20px;
-            font-size: 1.3em;
         }
 
         #m1-list .numbering {
@@ -116,7 +123,7 @@
             color: gray;
         }
         
-        #m2-btn-row {
+        #m2-btn-row, #m3-btn-row {
             display: flex;
             flex-direction: row;
             justify-content: center;
@@ -130,6 +137,72 @@
             flex-direction: row;
             justify-content: space-between;
             align-items: start;
+        }
+
+        p.text {
+            font-size: 1.3em;
+        }
+
+        #m2-text, #m3-text {
+            padding: 30px 0px;
+            user-select: none;
+        }
+
+        #m2-end {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .hidden {
+            display: none;
+        }
+        
+        #timer-outer {
+            height: 10px;
+            border-radius: 999px;
+            margin-bottom: 16px;
+            background-color: rgb(236, 98, 98);
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-start;
+        }
+
+        #timer-inner {
+            height: 100%;
+            border-radius: 999px;
+            background-color: rgb(60, 194, 60);
+        }
+        
+        #m3-controls {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
+        }
+
+        #m3-ans {
+            font-size: 1.5em;
+            color: red;
+        }
+
+
+
+
+
+        @keyframes m3-red {
+            0% {
+                background-color: red;
+            }
+            100% {
+                background-color: transparent;
+            }
+        }
+        .m3-red-anim {
+            animation: m3-red 0.3s ease-out forwards;
         }
     </style>
 </head>
@@ -155,6 +228,29 @@
             </div>
             <div id="m2-btn-row"></div>
             <hr>
+            <p id="m2-text" class="text" onclick="mode2click()"></p>
+            <div id="timer-outer">
+                <div id="timer-inner"></div>
+            </div>
+            <div id="m2-end" class="hidden" style="display: none;">
+                <button id="m2-prev">Previous</button>
+                <button id="m2-next">Next</button>
+            </div>
+        </div>
+    </div>
+    <div id="screen3">
+        <div class="container">
+            <div class="title-bar">
+                <h1> <span id="m3-title"></span></h1>
+                <button onclick="switchScreen(0)">Back</button>
+            </div>
+            <div id="m3-btn-row"></div>
+            <hr>
+            <p id="m3-text" class="text"></p>
+            <div id="m3-controls">
+                <p id="m3-ans"></p>
+                <button id="m3-btn" onclick="mode3click()">Advance</button>
+            </div>
         </div>
     </div>
     <div id="screen404">
@@ -167,6 +263,7 @@
 <script src="data/texts2.js"></script>
 <script>
     function switchScreen(n, params = {}, push = true) {
+        clearInterval(m2interval);
         console.log("test!", n, params, push);
         const active = document.querySelector(".screen-active");
         if (active) active.classList.remove("screen-active");
@@ -174,14 +271,15 @@
         if (el) {
             el.classList.add("screen-active");
         } else {
-            history.replaceState({ screen: n, params: params || {} }, "");
-            return;
+            switchScreen(404);
         }
 
         if (push) {
             const url = new URL(window.location.href);
             url.search = "";
-            url.searchParams.set("screen", String(n));
+            if (n != 0) {
+                url.searchParams.set("screen", String(n));
+            }
             for (const [k, v] of Object.entries(params || {})) {
                 if (v === null || v === undefined) {
                     url.searchParams.delete(k);
@@ -196,6 +294,8 @@
             mode1(params.name);
         } else if (n == 2) {
             mode2(params.name);
+        } else if (n == 3) {
+            mode3(params.name);
         }
     }
 
@@ -234,40 +334,154 @@
         const list = document.getElementById("m1-list");
         list.innerHTML = "";
         for (const key in TEXTS[name]) {
-            list.innerHTML += `<p><span class="numbering">${key}</span> ${TEXTS[name][key].text}</p>`
+            list.innerHTML += `<p class="text"><span class="numbering">${key}</span> ${TEXTS[name][key].text}</p>`
         }
     }
 
-    let currentPara = null;
+    let textName = null;
+    let textParas = null;
+    let textParaIndex = null;
+    let textParaObj = null;
+    let m2index = 0;
+    let m2time = 0;
+    let m2totalTime = 7000;
+    let m2interval = null;
 
     function mode2(name) {
         if (!(name in TEXTS)) {
             switchScreen(404);
         }
+        textName = name;
         document.getElementById("m2-title").innerText = name;
         const text = TEXTS[name];
         const paras = document.getElementById("m2-btn-row");
         paras.innerHTML = "";
-        for (const para in text) {
-            if (currentPara === null) {
-                currentPara = para;
-            }
-            paras.innerHTML += `<button data-para="${para}">#${para}</button>`
+        textParas = Object.keys(text);
+        textParaIndex = 0;
+        for (let i = 0; i < textParas.length; i++) {
+            paras.innerHTML += `<button data-para-index="${i}">#${textParas[i]}</button>`
         }
         paras.querySelectorAll("button").forEach(btn => {
             btn.onclick = () => {
-                currentPara = btn.getAttribute("data-para");
+                textParaIndex = btn.getAttribute("data-para-index");
                 mode2Update();
             }
         });
         mode2Update();
     }
 
-    function mode2Update() {
+    function mode2Update() { // change of paragraphs
+        clearInterval(m2interval);
         const paras = document.getElementById("m2-btn-row");
         paras.querySelectorAll("button").forEach(btn => {
-            btn.classList.toggle("selected", btn.getAttribute("data-para") == currentPara);
+            btn.classList.toggle("selected", btn.getAttribute("data-para-index") == textParaIndex);
         });
+
+        m2index = 0;
+        textParaObj = TEXTS[textName][textParas[textParaIndex]];
+        document.getElementById("m2-text").innerText = "";
+        
+        document.getElementById("m2-prev").disabled = textParaIndex == 0;
+        document.getElementById("m2-next").disabled = textParaIndex == textParas.length - 1;
+
+        document.getElementById("m2-next").onclick = () => {
+            textParaIndex++;
+            mode2Update();
+        }
+        
+        document.getElementById("m2-prev").onclick = () => {
+            textParaIndex--;
+            mode2Update();
+        }
+        
+        document.getElementById("timer-inner").style.width = "100%";
+    }
+
+    function mode2click() {
+        if (m2index >= textParaObj.text.length) {
+            return;
+        }
+        m2time = Math.min(m2time + 3000, m2totalTime);
+        if (m2index == 0) {
+            m2time = m2totalTime;
+            m2interval = setInterval(() => {
+                m2time -= 20;
+                document.getElementById("timer-inner").style.width = `${m2time / m2totalTime * 100}%`;
+                
+                if (m2time <= 0) {
+                    document.getElementById("timer-inner").style.width = "0%";
+                    clearInterval(m2interval);
+                    mode2Update();
+                }
+            }, 20);
+        }
+        m2index++;
+        document.getElementById("m2-text").innerText = textParaObj.text.substring(0, m2index);
+    }
+    
+
+    let m3mode = 1; // is showing qs now?
+    let m3trans = null;
+    function mode3(name) {
+        if (!(name in TEXTS)) {
+            switchScreen(404);
+        }
+        textName = name;
+        document.getElementById("m3-title").innerText = name;
+        const text = TEXTS[name];
+        const paras = document.getElementById("m3-btn-row");
+        paras.innerHTML = "";
+        textParas = Object.keys(text);
+        textParaIndex = 0;
+        for (let i = 0; i < textParas.length; i++) {
+            paras.innerHTML += `<button data-para-index="${i}">#${textParas[i]}</button>`
+        }
+        paras.querySelectorAll("button").forEach(btn => {
+            btn.onclick = () => {
+                textParaIndex = btn.getAttribute("data-para-index");
+                mode3Update();
+            }
+        });
+        mode3Update();
+    }
+
+    function mode3Update() { // change of paragraphs
+        document.getElementById("m3-btn").disabled = false;
+        const paras = document.getElementById("m3-btn-row");
+        paras.querySelectorAll("button").forEach(btn => {
+            btn.classList.toggle("selected", btn.getAttribute("data-para-index") == textParaIndex);
+        });
+
+        textParaObj = TEXTS[textName][textParas[textParaIndex]];
+        document.getElementById("m3-text").innerText = "Click to start ...";
+        
+        m3trans = JSON.parse(JSON.stringify(textParaObj["translations"]));
+
+        // simulate starting
+        m3mode = 0;
+        mode3click();
+    }
+
+    let m3data = {};
+    function mode3click() {
+        if (m3mode == 0) {
+            // generate a new question
+            document.getElementById("m3-ans").innerText = "";
+            document.getElementById("m3-ans").classList.remove("m3-red-anim");
+            let keys = Object.keys(m3trans);
+            m3data.index = parseInt(keys[Math.floor(keys.length * Math.random())]);
+            [m3data.length, m3data.word] = m3trans[m3data.index];
+            let text = textParaObj.text;
+            document.getElementById("m3-text").innerHTML = text.substring(0, m3data.index) + `<span class="m3-red-anim" style="color: red; font-weight: bold;">${text.substr(m3data.index, m3data.length)}</span>` + text.substring(m3data.index + m3data.length);
+        } else {
+            document.getElementById("m3-ans").innerText = m3data.word;
+            document.getElementById("m3-ans").classList.add("m3-red-anim");
+            delete m3trans[m3data.index];
+            if (Object.keys(m3trans).length == 0) {
+                document.getElementById("m3-btn").disabled = true;
+            }
+        }
+        m3mode = 1 - m3mode;
     }
 
     for (const name of ORDER) {
@@ -283,7 +497,7 @@
                 <div class="card-controls">
                     <button onclick="switchScreen(1, { name: '${name}' })">原文</button>
                     <button onclick="switchScreen(2, { name: '${name}' })">背誦</button>
-                    <button>譯字</button>
+                    <button onclick="switchScreen(3, { name: '${name}' })">譯字</button>
                 </div>
             </div>
         `;
