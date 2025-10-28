@@ -379,7 +379,7 @@
 
         m2index = 0;
         textParaObj = TEXTS[textName][textParas[textParaIndex]];
-        document.getElementById("m2-text").innerText = "";
+        document.getElementById("m2-text").innerText = "Click to start ...";
         
         document.getElementById("m2-prev").disabled = textParaIndex == 0;
         document.getElementById("m2-next").disabled = textParaIndex == textParas.length - 1;
@@ -453,7 +453,7 @@
         });
 
         textParaObj = TEXTS[textName][textParas[textParaIndex]];
-        document.getElementById("m3-text").innerText = "Click to start ...";
+        document.getElementById("m3-text").innerText = "";
         
         m3trans = JSON.parse(JSON.stringify(textParaObj["translations"]));
 
