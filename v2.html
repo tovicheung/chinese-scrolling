@@ -249,7 +249,7 @@
             <p id="m3-text" class="text"></p>
             <div id="m3-controls">
                 <p id="m3-ans"></p>
-                <button id="m3-btn" onclick="mode3click()">Advance</button>
+                <button id="m3-btn" onclick="mode3click()"></button>
             </div>
         </div>
     </div>
@@ -324,6 +324,7 @@
     const GROUPS = [
         [["論仁", "論孝", "論君子"], "#faf8ca"],
         [["念奴嬌", "聲聲慢", "青玉案"], "#f8d4fc"],
+        [["山居秋暝"], "#e0fbff"],
         [["逍遙遊", "始得西山宴遊記"], "#d6ffe0"],
     ];
 
@@ -337,6 +338,26 @@
         for (const key in TEXTS[name]) {
             list.innerHTML += `<p class="text"><span class="numbering">${key}</span> ${TEXTS[name][key].text}</p>`
         }
+    }
+
+    function setupParas(id) {
+        const text = TEXTS[textName];
+        const paras = document.getElementById(id);
+        paras.innerHTML = "";
+        textParas = Object.keys(text);
+        textParaIndex = 0;
+        for (let i = 0; i < textParas.length; i++) {
+            paras.innerHTML += `<button data-para-index="${i}">#${textParas[i]}</button>`
+        }
+        const s = (new URL(window.location.href)).searchParams.get("screen");
+        if (s === null) return;
+        paras.querySelectorAll("button").forEach(btn => {
+            btn.onclick = () => {
+                textParaIndex = btn.getAttribute("data-para-index");
+                if (s == 2) mode2Update();
+                else if (s == 3) mode3Update();
+            }
+        });
     }
 
     let textName = null;
@@ -354,20 +375,7 @@
         }
         textName = name;
         document.getElementById("m2-title").innerText = name;
-        const text = TEXTS[name];
-        const paras = document.getElementById("m2-btn-row");
-        paras.innerHTML = "";
-        textParas = Object.keys(text);
-        textParaIndex = 0;
-        for (let i = 0; i < textParas.length; i++) {
-            paras.innerHTML += `<button data-para-index="${i}">#${textParas[i]}</button>`
-        }
-        paras.querySelectorAll("button").forEach(btn => {
-            btn.onclick = () => {
-                textParaIndex = btn.getAttribute("data-para-index");
-                mode2Update();
-            }
-        });
+        setupParas("m2-btn-row");
         mode2Update();
     }
 
@@ -418,6 +426,11 @@
         }
         m2index++;
         document.getElementById("m2-text").innerText = textParaObj.text.substring(0, m2index);
+        if (m2index >= textParaObj.text.length) {
+            clearInterval(m2interval);
+            document.getElementById("timer-inner").style.width = "100%";
+            document.getElementById("m2-text").innerHTML += "<br>Done";
+        }
     }
     
 
@@ -429,20 +442,7 @@
         }
         textName = name;
         document.getElementById("m3-title").innerText = name;
-        const text = TEXTS[name];
-        const paras = document.getElementById("m3-btn-row");
-        paras.innerHTML = "";
-        textParas = Object.keys(text);
-        textParaIndex = 0;
-        for (let i = 0; i < textParas.length; i++) {
-            paras.innerHTML += `<button data-para-index="${i}">#${textParas[i]}</button>`
-        }
-        paras.querySelectorAll("button").forEach(btn => {
-            btn.onclick = () => {
-                textParaIndex = btn.getAttribute("data-para-index");
-                mode3Update();
-            }
-        });
+        setupParas("m3-btn-row");
         mode3Update();
     }
 
@@ -474,10 +474,12 @@
             [m3data.length, m3data.word] = m3trans[m3data.index];
             let text = textParaObj.text;
             document.getElementById("m3-text").innerHTML = text.substring(0, m3data.index) + `<span class="m3-red-anim" style="color: red; font-weight: bold;">${text.substr(m3data.index, m3data.length)}</span>` + text.substring(m3data.index + m3data.length);
+            document.getElementById("m3-btn").innerText = "Reveal";
         } else {
             document.getElementById("m3-ans").innerText = m3data.word;
             document.getElementById("m3-ans").classList.add("m3-red-anim");
             delete m3trans[m3data.index];
+            document.getElementById("m3-btn").innerText = "Next";
             if (Object.keys(m3trans).length == 0) {
                 document.getElementById("m3-btn").disabled = true;
             }
@@ -533,5 +535,4 @@
             history.replaceState({ screen: 0, params: {} }, "", window.location.pathname);
         }
     })();
-
 </script>
