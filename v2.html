@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html>
 <head>
     <title>DSE 中文 十二篇範文</title>
     <meta charset="utf-8">
@@ -30,8 +32,8 @@
         }
 
         .card {
-            width: 300px;
-            height: 150px; 
+            width: 200px;
+            height: 90px; 
 
             background-color: #ffffff;
             border: 1px solid #ccc;
@@ -52,7 +54,7 @@
             cursor: pointer;
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 400px) {
             .card {
                 width: 100%; 
                 height: 150px;
@@ -107,33 +109,6 @@
             background-color: #cee1ff;
         }
 
-        .card-controls {
-            width: 100%;
-            display: flex;
-            flex-direction: row;
-            gap: 20px;
-            justify-content: center;
-        }
-
-        #m1-list p {
-            padding-top: 20px;
-        }
-
-        #m1-list .numbering {
-            padding-right: 20px;
-            font-family: Arial, Helvetica, sans-serif;
-            color: gray;
-        }
-        
-        #m2-btn-row, #m3-btn-row {
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
         .title-bar {
             display: flex;
             flex-direction: row;
@@ -144,27 +119,6 @@
         .title-bar h1 {
             margin-top: 0;
             margin-bottom: 0;
-        }
-
-        p.text {
-            font-size: 1.3em;
-        }
-
-        #m2-text, #m3-text {
-            padding: 30px 0px;
-            user-select: none;
-        }
-
-        #m2-end {
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .hidden {
-            display: none;
         }
         
         #timer-outer {
@@ -217,6 +171,7 @@
         .para {
             padding: 14px;
             font-size: 1.35em;
+            margin-top: 8px;
         }
 
         .para.active {
@@ -255,11 +210,11 @@
             font-family: Arial, Helvetica, sans-serif;
         }
 
-        #c-paras .hidden {
+        #para-list .hidden {
             display: none;
         }
 
-        #c-paras hr {
+        #para-list hr {
             margin-top: 15px;
             margin-bottom: 15px;
         }
@@ -268,66 +223,16 @@
 
 <body>
     <div id="screen0" class="screen-active">
+        <h1 style="text-align: center; margin-top: 0px; margin-bottom: 30px;">DSE 中文 十二篇範文</h1>
         <div id="card-container"></div>
-    </div>
-    <div id="screen10">
-        <div class="container">
-            <button onclick="setState({ text: null })">Back</button>
-            <div class="title-bar">
-                <h1><span id="c-title"></span></h1>
-                <!-- <div>
-                    <button data-mode="1">原文</button>
-                    <button data-mode="2">背誦</button>
-                    <button data-mode="3">Test</button>
-                </div> -->
-            </div>
-            <div id="c-paras">
-                <div class="para" data-para="1">Lorem Ipsum</div>
-                <div class="para" data-para="2">Lorem Ipsum</div>
-                <div class="para" data-para="3">Lorem Ipsum</div>
-            </div>
-        </div>
     </div>
     <div id="screen1">
         <div class="container">
             <div class="title-bar">
-                <h1><span id="m1-title"></span> 原文</h1>
-                <button onclick="switchScreen(0)">Back</button>
+                <h1 id="text-title"></h1>
+                <button onclick="setState({ text: null })">返回</button>
             </div>
-            <div id="m1-list"></div>
-        </div>
-    </div>
-    <div id="screen2">
-        <div class="container">
-            <div class="title-bar">
-                <h1>背誦 <span id="m2-title"></span></h1>
-                <button onclick="switchScreen(0)">Back</button>
-            </div>
-            <div id="m2-btn-row"></div>
-            <hr>
-            <p id="m2-text" class="text" onclick="mode2click()"></p>
-            <div id="timer-outer">
-                <div id="timer-inner"></div>
-            </div>
-            <div id="m2-end" class="hidden" style="display: none;">
-                <button id="m2-prev">Previous</button>
-                <button id="m2-next">Next</button>
-            </div>
-        </div>
-    </div>
-    <div id="screen3">
-        <div class="container">
-            <div class="title-bar">
-                <h1> <span id="m3-title"></span></h1>
-                <button onclick="switchScreen(0)">Back</button>
-            </div>
-            <div id="m3-btn-row"></div>
-            <hr>
-            <p id="m3-text" class="text"></p>
-            <div id="m3-controls">
-                <p id="m3-ans"></p>
-                <button id="m3-btn" onclick="mode3click()"></button>
-            </div>
+            <div id="para-list"></div>
         </div>
     </div>
     <div id="screen404">
@@ -340,7 +245,6 @@
 <script src="data/texts2.js"></script>
 <script>
     function switchScreen(n) {
-        console.log("switch screen:", n);
         const active = document.querySelector(".screen-active");
         if (active) active.classList.remove("screen-active");
         const el = document.getElementById(`screen${n}`);
@@ -351,11 +255,7 @@
         }
     }
 
-    var state = {
-        text: null,
-        para: 0,
-        mode: 1,
-    }
+    var state = { text: null }
 
     const ORDER = [
         "論仁",
@@ -386,38 +286,6 @@
         [["逍遙遊", "始得西山宴遊記"], "#d6ffe0"],
     ];
 
-    function mode1(name) {
-        if (!(name in TEXTS)) {
-            switchScreen(404, false);
-        }
-        document.getElementById("m1-title").innerText = name;
-        const list = document.getElementById("m1-list");
-        list.innerHTML = "";
-        for (const key in TEXTS[name]) {
-            list.innerHTML += `<p class="text"><span class="numbering">${key}</span> ${TEXTS[name][key].text}</p>`
-        }
-    }
-
-    function setupParas(id) {
-        const text = TEXTS[textName];
-        const paras = document.getElementById(id);
-        paras.innerHTML = "";
-        textParas = Object.keys(text);
-        textParaIndex = 0;
-        for (let i = 0; i < textParas.length; i++) {
-            paras.innerHTML += `<button data-para-index="${i}">#${textParas[i]}</button>`
-        }
-        const s = (new URL(window.location.href)).searchParams.get("screen");
-        if (s === null) return;
-        paras.querySelectorAll("button").forEach(btn => {
-            btn.onclick = () => {
-                textParaIndex = btn.getAttribute("data-para-index");
-                if (s == 2) mode2Update();
-                else if (s == 3) mode3Update();
-            }
-        });
-    }
-
     for (const name of ORDER) {
         let color = "";
         for (const group of GROUPS) {
@@ -426,17 +294,8 @@
             }
         }
         document.getElementById("card-container").innerHTML += `
-            <div class="card" style="background-color: ${color}" onclick="setState({
-                    text: '${name}',
-                    para: 1,
-                    mode: 1,
-                })">
+            <div class="card" style="background-color: ${color}" onclick="setState({ text: '${name}' })">
                 <b>${name}</b>
-                <div class="card-controls">
-                    <!-- <button onclick="switchScreen(1, { name: '${name}' })">原文</button>
-                    <button onclick="switchScreen(2, { name: '${name}' })">背誦</button>
-                    <button onclick="switchScreen(3, { name: '${name}' })">譯字</button> -->
-                </div>
             </div>
         `;
     }
@@ -446,8 +305,6 @@
         if (state.text !== null && !(state.text in TEXTS)) {
             state.text = null;
         }
-        state.para = newState.para ?? 1;
-        state.mode = newState.mode ?? 1;
         
         const url = new URL(window.location.href);
         url.search = "";
@@ -478,17 +335,12 @@
             switchScreen(0);
             return;
         }
-        switchScreen(10);
+        switchScreen(1);
 
-        document.getElementById("c-title").innerText = state.text;
+        document.getElementById("text-title").innerText = state.text;
 
-        // document.querySelectorAll("button[data-mode]").forEach(btn => {
-        //     btn.classList.toggle("selected", btn.getAttribute("data-mode") === String(state.mode));
-        // });
-
-        const tmp = document.getElementById("c-paras");
+        const tmp = document.getElementById("para-list");
         tmp.innerHTML = "";
-        console.log(TEXTS[state.text]);
         for (const p in TEXTS[state.text]) {
             tmp.innerHTML += `
                 <hr>
@@ -532,7 +384,7 @@
 
     function startMode2(para) {
         if (running) return;
-        // document.querySelectorAll("#c-paras > *").forEach(e => {
+        // document.querySelectorAll("#para-list > *").forEach(e => {
         //     if (e.getAttribute("data-para") != para) {
         //         e.classList.add("hidden");
         //     }
@@ -585,6 +437,12 @@
         }
     }
 
+    let m3text = "";
+    let m3mode = 1; // is showing qs now?
+    let m3trans = null;
+    let m3data = {};
+    let m3controls = null;
+
     function startMode3(para) {
         if (running) return;
         running = true;
@@ -600,22 +458,6 @@
         m3controls.querySelector(".m3-btn").disabled = false;
 
         mode3click();
-    }
-
-    let m3text = "";
-    let m3mode = 1; // is showing qs now?
-    let m3trans = null;
-    let m3data = {};
-    let m3controls = null;
-    
-    function mode3(name) {
-        if (!(name in TEXTS)) {
-            switchScreen(404);
-        }
-        textName = name;
-        document.getElementById("m3-title").innerText = name;
-        setupParas("m3-btn-row");
-        mode3Update();
     }
 
     function mode3click() {
@@ -646,37 +488,22 @@
 
     window.addEventListener("popstate", e => {
         // when nav is used
-        if (e.state && e.state.text && e.state.para && e.state.mode) {
+        if (e.state && e.state.text) {
             state.text = e.state.text;
         } else {
-            state = {
-                text: null,
-                para: 0,
-                mode: 1,
-            };
+            state = { text: null };
         }
         setup();
     });
 
     // on direct load, not pushState
     (() => {
-        console.log("direct load");
         const params = new URLSearchParams(window.location.search);
         if (params.has("text")) {
-            setState({
-                text: params.get("text"),
-                para: parseInt(params.get("para"), 10) || 1,
-                mode: parseInt(params.get("mode"), 10) || 1,
-            }, true);
+            setState({ text: params.get("text") }, true);
         } else {
             setState(state, true);
         }
-
-        // document.querySelectorAll("button[data-mode]").forEach(btn => {
-        //     btn.onclick = () => {
-        //         state.mode = parseInt(btn.getAttribute("data-mode"));
-        //         setState(state);
-        //     }
-        // });
     })();
 </script>
+</html>
