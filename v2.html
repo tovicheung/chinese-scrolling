@@ -48,6 +48,8 @@
             padding: 10px;
             box-sizing: border-box;
             transition: box-shadow 0.1s ease-in-out;
+
+            cursor: pointer;
         }
 
         @media (max-width: 600px) {
@@ -89,7 +91,7 @@
         }
 
         button:hover {
-            background-color: #cee1ff;
+            background-color: #a4c0ed;
         }
 
         button:not(:disabled) {
@@ -102,7 +104,7 @@
         }
         
         button.selected {
-            background-color: #a4c0ed;
+            background-color: #cee1ff;
         }
 
         .card-controls {
@@ -136,7 +138,12 @@
             display: flex;
             flex-direction: row;
             justify-content: space-between;
-            align-items: start;
+            align-items: center;
+        }
+
+        .title-bar h1 {
+            margin-top: 0;
+            margin-bottom: 0;
         }
 
         p.text {
@@ -176,22 +183,24 @@
             background-color: rgb(60, 194, 60);
         }
         
-        #m3-controls {
+        .m3-controls {
             display: flex;
             flex-direction: row;
             justify-content: space-between;
             align-items: center;
             height: 60px;
+
+            display: none;
         }
 
-        #m3-ans {
+        .para.active + .m3-controls {
+            display: flex;
+        }
+
+        .m3-ans {
             font-size: 1.5em;
             color: red;
         }
-
-
-
-
 
         @keyframes m3-red {
             0% {
@@ -204,12 +213,80 @@
         .m3-red-anim {
             animation: m3-red 0.3s ease-out forwards;
         }
+
+        .para {
+            padding: 14px;
+            font-size: 1.35em;
+        }
+
+        .para.active {
+            background-color: rgb(255, 229, 233);
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .para.success {
+            background-color: rgb(200, 255, 200);
+        }
+
+        .para-pre {
+            margin-bottom: 0;
+            font-size: 1.2em;
+
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+        }
+        
+        .para-pre:has(+ .para.active) .para-pre-normal {
+            display: none !important;
+        }
+        
+        .para-pre:has(+ .para:not(.active)) .para-pre-active {
+            display: none !important;
+        }
+
+        .para-pre > span {
+            color: lightslategray;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        #c-paras .hidden {
+            display: none;
+        }
+
+        #c-paras hr {
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 
 <body>
     <div id="screen0" class="screen-active">
         <div id="card-container"></div>
+    </div>
+    <div id="screen10">
+        <div class="container">
+            <button onclick="setState({ text: null })">Back</button>
+            <div class="title-bar">
+                <h1><span id="c-title"></span></h1>
+                <!-- <div>
+                    <button data-mode="1">原文</button>
+                    <button data-mode="2">背誦</button>
+                    <button data-mode="3">Test</button>
+                </div> -->
+            </div>
+            <div id="c-paras">
+                <div class="para" data-para="1">Lorem Ipsum</div>
+                <div class="para" data-para="2">Lorem Ipsum</div>
+                <div class="para" data-para="3">Lorem Ipsum</div>
+            </div>
+        </div>
     </div>
     <div id="screen1">
         <div class="container">
@@ -262,9 +339,8 @@
 </body>
 <script src="data/texts2.js"></script>
 <script>
-    function switchScreen(n, params = {}, push = true) {
-        clearInterval(m2interval);
-        console.log("test!", n, params, push);
+    function switchScreen(n) {
+        console.log("switch screen:", n);
         const active = document.querySelector(".screen-active");
         if (active) active.classList.remove("screen-active");
         const el = document.getElementById(`screen${n}`);
@@ -273,30 +349,12 @@
         } else {
             switchScreen(404);
         }
+    }
 
-        if (push) {
-            const url = new URL(window.location.href);
-            url.search = "";
-            if (n != 0) {
-                url.searchParams.set("screen", String(n));
-            }
-            for (const [k, v] of Object.entries(params || {})) {
-                if (v === null || v === undefined) {
-                    url.searchParams.delete(k);
-                } else {
-                    url.searchParams.set(k, String(v));
-                }
-            }
-            history.pushState({ screen: n, params: params }, "", url.pathname + (url.search ? "?" + url.searchParams.toString() : ""));
-        }
-
-        if (n == 1) {
-            mode1(params.name);
-        } else if (n == 2) {
-            mode2(params.name);
-        } else if (n == 3) {
-            mode3(params.name);
-        }
+    var state = {
+        text: null,
+        para: 0,
+        mode: 1,
     }
 
     const ORDER = [
@@ -360,82 +418,196 @@
         });
     }
 
-    let textName = null;
-    let textParas = null;
-    let textParaIndex = null;
-    let textParaObj = null;
+    for (const name of ORDER) {
+        let color = "";
+        for (const group of GROUPS) {
+            if (group[0].includes(name)) {
+                color = group[1];
+            }
+        }
+        document.getElementById("card-container").innerHTML += `
+            <div class="card" style="background-color: ${color}" onclick="setState({
+                    text: '${name}',
+                    para: 1,
+                    mode: 1,
+                })">
+                <b>${name}</b>
+                <div class="card-controls">
+                    <!-- <button onclick="switchScreen(1, { name: '${name}' })">原文</button>
+                    <button onclick="switchScreen(2, { name: '${name}' })">背誦</button>
+                    <button onclick="switchScreen(3, { name: '${name}' })">譯字</button> -->
+                </div>
+            </div>
+        `;
+    }
+
+    function setState(newState, replace = false) {
+        state.text = newState.text ?? null;
+        if (state.text !== null && !(state.text in TEXTS)) {
+            state.text = null;
+        }
+        state.para = newState.para ?? 1;
+        state.mode = newState.mode ?? 1;
+        
+        const url = new URL(window.location.href);
+        url.search = "";
+        for (const [k, v] of Object.entries(state)) {
+            url.searchParams.set(k, String(v));
+        }
+
+        let fullUrl = url.pathname;
+        if (state.text !== null) {
+            fullUrl += url.search ? "?" + url.searchParams.toString() : "";
+        }
+
+        if (replace) {
+            history.replaceState(state, "", fullUrl);
+            setup();
+        } else {
+            history.pushState(state, "", fullUrl);
+            setup();
+        }
+    }
+    
+    var running = false;
+
+    function setup() {
+        // state is changed
+        clearInterval(m2interval);
+        if (state.text === null) {
+            switchScreen(0);
+            return;
+        }
+        switchScreen(10);
+
+        document.getElementById("c-title").innerText = state.text;
+
+        // document.querySelectorAll("button[data-mode]").forEach(btn => {
+        //     btn.classList.toggle("selected", btn.getAttribute("data-mode") === String(state.mode));
+        // });
+
+        const tmp = document.getElementById("c-paras");
+        tmp.innerHTML = "";
+        console.log(TEXTS[state.text]);
+        for (const p in TEXTS[state.text]) {
+            tmp.innerHTML += `
+                <hr>
+                <div class="para-pre">
+                    <span>第${p}段</span>
+                    <div class="para-pre-normal">
+                        <button onclick="startMode2(${p})">背</button>
+                        <button onclick="startMode3(${p})">譯</button>
+                    </div>
+                    <div class="para-pre-active">
+                        <button onclick="exit()">Exit</button>
+                    </div>
+                </div>
+                <div class="para" data-para="${p}">
+                    ${TEXTS[state.text][p].text}
+                </div>
+                <div class="m3-controls">
+                    <p class="m3-ans"></p>
+                    <button class="m3-btn" onclick="mode3click()"></button>
+                </div>
+            `;
+        }
+    }
+    
+    function exit() {
+        clearInterval(m2interval);
+        window.removeEventListener("click", mode2click);
+        activePara.classList.remove("active");
+        activePara.innerText = TEXTS[state.text][parseInt(activePara.getAttribute("data-para"))].text;
+
+        running = false;
+    }
+
+    let m2para = "";
     let m2index = 0;
     let m2time = 0;
     let m2totalTime = 7000;
     let m2interval = null;
 
-    function mode2(name) {
-        if (!(name in TEXTS)) {
-            switchScreen(404);
-        }
-        textName = name;
-        document.getElementById("m2-title").innerText = name;
-        setupParas("m2-btn-row");
-        mode2Update();
-    }
+    let activePara = null;
 
-    function mode2Update() { // change of paragraphs
-        clearInterval(m2interval);
-        const paras = document.getElementById("m2-btn-row");
-        paras.querySelectorAll("button").forEach(btn => {
-            btn.classList.toggle("selected", btn.getAttribute("data-para-index") == textParaIndex);
-        });
-
+    function startMode2(para) {
+        if (running) return;
+        // document.querySelectorAll("#c-paras > *").forEach(e => {
+        //     if (e.getAttribute("data-para") != para) {
+        //         e.classList.add("hidden");
+        //     }
+        // })
+        running = true;
         m2index = 0;
-        textParaObj = TEXTS[textName][textParas[textParaIndex]];
-        document.getElementById("m2-text").innerText = "Click to start ...";
-        
-        document.getElementById("m2-prev").disabled = textParaIndex == 0;
-        document.getElementById("m2-next").disabled = textParaIndex == textParas.length - 1;
+        m2time = 0;
+        m2totalTime = 7000;
+        m2interval = null;
+        m2para = TEXTS[state.text][para].text;
 
-        document.getElementById("m2-next").onclick = () => {
-            textParaIndex++;
-            mode2Update();
-        }
-        
-        document.getElementById("m2-prev").onclick = () => {
-            textParaIndex--;
-            mode2Update();
-        }
-        
-        document.getElementById("timer-inner").style.width = "100%";
+        activePara = document.querySelector(`.para[data-para = "${para}"]`);
+        activePara.classList.add("active");
+        // document.getElementById("timer-inner").style.width = "100%";
+
+        setTimeout(() => window.addEventListener("click", mode2click), 300);
+
+        activePara.innerText = "…";
     }
 
     function mode2click() {
-        if (m2index >= textParaObj.text.length) {
+        if (m2index >= m2para.length) {
             return;
         }
-        m2time = Math.min(m2time + 3000, m2totalTime);
-        if (m2index == 0) {
-            m2time = m2totalTime;
-            m2interval = setInterval(() => {
-                m2time -= 20;
-                document.getElementById("timer-inner").style.width = `${m2time / m2totalTime * 100}%`;
-                
-                if (m2time <= 0) {
-                    document.getElementById("timer-inner").style.width = "0%";
-                    clearInterval(m2interval);
-                    mode2Update();
-                }
-            }, 20);
-        }
+        // m2time = Math.min(m2time + 3000, m2totalTime);
+        // if (m2index == 0) {
+        //     m2time = m2totalTime;
+        //     m2interval = setInterval(() => {
+        //         m2time -= 20;
+        //         document.getElementById("timer-inner").style.width = `${m2time / m2totalTime * 100}%`;
+        //         
+        //         if (m2time <= 0) {
+        //             document.getElementById("timer-inner").style.width = "0%";
+        //             clearInterval(m2interval);
+        //             mode2Update();
+        //         }
+        //     }, 20);
+        // }
         m2index++;
-        document.getElementById("m2-text").innerText = textParaObj.text.substring(0, m2index);
-        if (m2index >= textParaObj.text.length) {
-            clearInterval(m2interval);
-            document.getElementById("timer-inner").style.width = "100%";
-            document.getElementById("m2-text").innerHTML += "<br>Done";
+        activePara.innerText = m2para.substring(0, m2index) + "…";
+        if (m2index >= m2para.length) {
+            exit();
+            activePara.classList.add("success");
+            // document.getElementById("timer-inner").style.width = "100%";
+
+            setTimeout(() => {
+                activePara.classList.remove("success");
+                running = false;
+            }, 1000);
         }
     }
-    
 
+    function startMode3(para) {
+        if (running) return;
+        running = true;
+
+        m3text = TEXTS[state.text][para].text;
+        m3mode = 0;
+        m3trans = JSON.parse(JSON.stringify(TEXTS[state.text][para].translations));
+        m3data = {};
+
+        activePara = document.querySelector(`.para[data-para = "${para}"]`);
+        activePara.classList.add("active");
+        m3controls = document.querySelector(`.para[data-para = "${para}"] + .m3-controls`);
+        m3controls.querySelector(".m3-btn").disabled = false;
+
+        mode3click();
+    }
+
+    let m3text = "";
     let m3mode = 1; // is showing qs now?
     let m3trans = null;
+    let m3data = {};
+    let m3controls = null;
+    
     function mode3(name) {
         if (!(name in TEXTS)) {
             switchScreen(404);
@@ -446,93 +618,65 @@
         mode3Update();
     }
 
-    function mode3Update() { // change of paragraphs
-        document.getElementById("m3-btn").disabled = false;
-        const paras = document.getElementById("m3-btn-row");
-        paras.querySelectorAll("button").forEach(btn => {
-            btn.classList.toggle("selected", btn.getAttribute("data-para-index") == textParaIndex);
-        });
-
-        textParaObj = TEXTS[textName][textParas[textParaIndex]];
-        document.getElementById("m3-text").innerText = "";
-        
-        m3trans = JSON.parse(JSON.stringify(textParaObj["translations"]));
-
-        // simulate starting
-        m3mode = 0;
-        mode3click();
-    }
-
-    let m3data = {};
     function mode3click() {
         if (m3mode == 0) {
             // generate a new question
-            document.getElementById("m3-ans").innerText = "";
-            document.getElementById("m3-ans").classList.remove("m3-red-anim");
+            m3controls.querySelector(".m3-ans").innerText = "";
+            m3controls.querySelector(".m3-ans").classList.remove("m3-red-anim");
             let keys = Object.keys(m3trans);
             m3data.index = parseInt(keys[Math.floor(keys.length * Math.random())]);
             [m3data.length, m3data.word] = m3trans[m3data.index];
-            let text = textParaObj.text;
-            document.getElementById("m3-text").innerHTML = text.substring(0, m3data.index) + `<span class="m3-red-anim" style="color: red; font-weight: bold;">${text.substr(m3data.index, m3data.length)}</span>` + text.substring(m3data.index + m3data.length);
-            document.getElementById("m3-btn").innerText = "Reveal";
+            activePara.innerHTML = 
+                m3text.substring(0, m3data.index)
+                + `<span class="m3-red-anim" style="color: red; font-weight: bold;">${m3text.substr(m3data.index, m3data.length)}</span>`
+                + m3text.substring(m3data.index + m3data.length);
+            m3controls.querySelector(".m3-btn").innerText = "Reveal";
         } else {
-            document.getElementById("m3-ans").innerText = m3data.word;
-            document.getElementById("m3-ans").classList.add("m3-red-anim");
+            m3controls.querySelector(".m3-ans").innerText = m3data.word;
+            m3controls.querySelector(".m3-ans").classList.add("m3-red-anim");
             delete m3trans[m3data.index];
-            document.getElementById("m3-btn").innerText = "Next";
+            m3controls.querySelector(".m3-btn").innerText = "Next";
             if (Object.keys(m3trans).length == 0) {
-                document.getElementById("m3-btn").disabled = true;
+                m3controls.querySelector(".m3-btn").disabled = true;
             }
         }
         m3mode = 1 - m3mode;
     }
 
-    for (const name of ORDER) {
-        let color = "";
-        for (const group of GROUPS) {
-            if (group[0].includes(name)) {
-                color = group[1];
-            }
-        }
-        document.getElementById("card-container").innerHTML += `
-            <div class="card" style="background-color: ${color}">
-                <b>${name}</b>
-                <div class="card-controls">
-                    <button onclick="switchScreen(1, { name: '${name}' })">原文</button>
-                    <button onclick="switchScreen(2, { name: '${name}' })">背誦</button>
-                    <button onclick="switchScreen(3, { name: '${name}' })">譯字</button>
-                </div>
-            </div>
-        `;
-    }
 
-    // when browser nav is used
     window.addEventListener("popstate", e => {
-        let n = 0;
-        let paramsObj = {};
-        if (e.state && e.state.screen) {
-            n = e.state.screen;
-            paramsObj = e.state.params || {};
+        // when nav is used
+        if (e.state && e.state.text && e.state.para && e.state.mode) {
+            state.text = e.state.text;
         } else {
-            const params = new URLSearchParams(window.location.search);
-            if (params.has("screen")) n = parseInt(params.get("screen"), 10) || 0;
-            params.forEach((v, k) => { if (k !== "screen") paramsObj[k] = v; });
+            state = {
+                text: null,
+                para: 0,
+                mode: 1,
+            };
         }
-        switchScreen(n, paramsObj, false);
+        setup();
     });
 
     // on direct load, not pushState
     (() => {
-        console.log("test");
+        console.log("direct load");
         const params = new URLSearchParams(window.location.search);
-        if (params.has("screen")) {
-            let n = parseInt(params.get("screen"), 10) || 0;
-            const paramsObj = {};
-            params.forEach((v, k) => { if (k !== "screen") paramsObj[k] = v; });
-            history.replaceState({ screen: n, params: paramsObj }, "", window.location.pathname + window.location.search);
-            switchScreen(n, paramsObj, false);
+        if (params.has("text")) {
+            setState({
+                text: params.get("text"),
+                para: parseInt(params.get("para"), 10) || 1,
+                mode: parseInt(params.get("mode"), 10) || 1,
+            }, true);
         } else {
-            history.replaceState({ screen: 0, params: {} }, "", window.location.pathname);
+            setState(state, true);
         }
+
+        // document.querySelectorAll("button[data-mode]").forEach(btn => {
+        //     btn.onclick = () => {
+        //         state.mode = parseInt(btn.getAttribute("data-mode"));
+        //         setState(state);
+        //     }
+        // });
     })();
 </script>
