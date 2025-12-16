@@ -147,7 +147,7 @@
             display: none;
         }
 
-        .para.active + .m3-controls {
+        .para.active3 + .m3-controls {
             display: flex;
         }
 
@@ -369,6 +369,7 @@
         clearInterval(m2interval);
         window.removeEventListener("click", mode2click);
         activePara.classList.remove("active");
+        activePara.classList.remove("active3");
         activePara.innerText = TEXTS[state.text][parseInt(activePara.getAttribute("data-para"))].text;
 
         running = false;
@@ -454,6 +455,7 @@
 
         activePara = document.querySelector(`.para[data-para = "${para}"]`);
         activePara.classList.add("active");
+        activePara.classList.add("active3");
         m3controls = document.querySelector(`.para[data-para = "${para}"] + .m3-controls`);
         m3controls.querySelector(".m3-btn").disabled = false;
 
