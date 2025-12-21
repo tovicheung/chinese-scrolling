@@ -1,334 +1,394 @@
 
-const FPS = 30;
-const MSPF = 1000 / FPS; // milliseconds per frame
-const PUNCTUATION = "，。？！；：︰「」『』";
+function switchScreen(n) {
+    const active = document.querySelector(".screen-active");
+    if (active) active.classList.remove("screen-active");
+    const el = document.getElementById(`screen${n}`);
+    if (el) {
+        el.classList.add("screen-active");
+    } else {
+        switchScreen(404);
+    }
+}
 
-// prepare(text_object) is called when the game is first loaded
-// advance() is called everytime the user clicks
-// end() is called by timer or called in advance()
+const MODE_LANDING = 0;
+const MODE_VIEW = 1;
+const MODE_QUIZ2 = 2;
 
-const MODES = {
-    mode0: {
-        timer: false,
-
-        prepare(text_object) {
-            document.getElementById("main").innerHTML = this.pre_gen = text;
-            var real_index = 0;
-            var iter_index = 0;
-            for (const [t_index, [t_length, t_word]] of Object.entries(text_object["translations"])) {
-                iter_index += t_index - real_index;
-                real_index = t_index;
-                const snippet = `<span class="small">${t_word}</span>`;
-                this.pre_gen = this.pre_gen.substring(0, iter_index + t_length) + snippet + this.pre_gen.substring(iter_index + t_length);
-                iter_index += snippet.length;
-            }
-        },
-
-        advance() {
-            this.show_translations = !this.show_translations;
-            if (this.show_translations) {
-                document.getElementById("main").innerHTML = this.pre_gen;
-            } else {
-                document.getElementById("main").innerHTML = text;
-            }
-        },
-
-        end: function() {},
-
-        pre_gen: "",
-        show_translations: false,
-    },
-    mode1: {
-        timer: true,
-
-        prepare() {
-            this.index = 0;
-        },
-
-        advance() {
-            this.index++;
-            document.getElementById("main").innerHTML = text.substring(0, this.index);
-            if (this.index >= text.length) end();
-        },
-
-        end() {
-            document.getElementById("main").innerHTML = text.substring(0, this.index) + `<span class="red">${text.substr(this.index)}</span>`;
-        },
-
-        index: 0,
-    },
-    mode2: {
-        timer: true,
-
-        prepare() {
-            this.index = 0;
-            // fill with full-width underscores
-            this.hints = [...text].map(c => PUNCTUATION.includes(c) ? c : "\uff3f").join("");
-        },
-
-        advance() {
-            this.index++;
-            document.getElementById("main").innerHTML = text.substring(0, this.index) + this.hints.substring(this.index);
-            if (this.index >= text.length) end();
-            if (PUNCTUATION.includes(text[this.index])) this.advance();
-        },
-
-        end() {
-            document.getElementById("main").innerHTML = text.substring(0, this.index) + `<span class="red">${text.substr(this.index)}</span>`;
-        },
-
-        hints: "",
-        index: 0,
-    },
-    mode3: {
-        timer: false,
-
-        prepare(text_object) {
-            this.trans = JSON.parse(JSON.stringify(text_object["translations"]));
-            this.need_reveal = false;
-        },
-
-        advance() {
-            if (this.need_reveal) {
-                document.getElementById("main").innerHTML = text.substring(0, this.index) + `<span class="red">${text.substr(this.index, this.length)}(${this.word})</span>` + text.substring(this.index + this.length);
-                delete this.trans[this.index];
-                if (Object.keys(this.trans).length == 0) end();
-            } else {
-                let keys = Object.keys(this.trans);
-                this.index = parseInt(keys[Math.floor(keys.length * Math.random())]);
-                [this.length, this.word] = this.trans[this.index];
-                document.getElementById("main").innerHTML = text.substring(0, this.index) + `<span class="redder">${text.substr(this.index, this.length)}</span>` + text.substring(this.index + this.length);
-            }
-            this.need_reveal = !this.need_reveal;
-        },
-
-        end: function() {},
-
-        trans: null,
-        index: 0,
-        length: 0,
-        word: "",
-        need_reveal: false,
-    },
+var state = {
+    mode: MODE_LANDING,
+    text: null,
 };
 
-const bar = {
-    time: 5000, // in ms
-    full: 5000, // in ms
-    interval: null,
-    onclick_go_options: false,
-    danger: false,
-
-    set_timer(millis) {
-        this.time = this.full = millis;
-    },
+const ORDER = [
+    "論仁",
+    "論孝",
+    "論君子",
     
-    start_timer() {
-        this.danger = false;
-        document.getElementById("container").classList.remove("danger");
-        document.getElementById("bar-inner").classList.remove("cyan");
+    "念奴嬌",
+    "聲聲慢",
+    "青玉案",
+    "山居秋暝",
+    "月下獨酌",
+    "登樓",
 
-        this.interval = setInterval(() => {
-            this.time -= MSPF
-            if (this.time < 0) return end();
-            if (this.time < 2000 && !this.danger) {
-                document.getElementById("container").classList.add("danger");
-                this.danger = true;
-            }
-            if (this.time >= 2000 && this.danger) {
-                document.getElementById("container").classList.remove("danger");
-                this.danger = false;
-            }
-            document.getElementById("bar-inner").style.width = `${this.time / this.full * 100}%`;
-        }, MSPF);
-    },
+    "勸學",
+    "師說",
+    "魚我所欲也",
+    "廉頗藺相如列傳",
+    "岳陽樓記",
 
-    stop_timer() {
-        clearInterval(this.interval);
-        this.interval = null;
-        this.onclick_go_options = true;
-        document.getElementById("bar-inner").style.width = "100%";
-        document.getElementById("bar-inner").classList.add("cyan");
-        document.getElementById("bar-inner").innerText = "Done";
+    "六國論",
+    "出師表",
 
-        this.danger = false;
-        document.getElementById("container").classList.remove("danger");
-    },
+    "逍遙遊",
+    "始得西山宴遊記",
+];
 
-    idle() {
-        this.onclick_go_options = false;
-        document.getElementById("bar-inner").style.width = "100%";
-        document.getElementById("bar-inner").classList.add("cyan");
-    },
-}
+const GROUPS = [
+    [["論仁", "論孝", "論君子"], "#faf8ca"],
+    [["念奴嬌", "聲聲慢", "青玉案"], "#f8d4fc"],
+    [["山居秋暝", "月下獨酌", "登樓"], "#e0fbff"],
+    // [["逍遙遊", "始得西山宴遊記"], "#d6ffe0"],
+];
 
-// current state
-var mode = null;
-var started = false;
-var running = false; // do clicks triger advance()?
-var text = "";
-
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+for (const name of ORDER) {
+    let color = "";
+    for (const group of GROUPS) {
+        if (group[0].includes(name)) {
+            color = group[1];
+        }
     }
+    document.getElementById("card-container").innerHTML += `
+        <div class="card" style="background-color: ${color}" onclick="setState({ mode: ${MODE_VIEW}, text: '${name}' })">
+            <b>${name}</b>
+        </div>
+    `;
 }
 
-function randInt(a, b) {
-    return Math.floor(Math.random() * (b - a)) + a;
-}
+function setState(newState, replace = false) {
+    console.log("setstate", newState);
+    state.mode = newState.mode;
+    state.text = state.mode === MODE_LANDING ? null : newState.text;
 
-function randomColor() {
-    // needs to be visible
+    let newUrl = window.location.pathname;
 
-    const vals = [
-        randInt(0x00, 0xaa),
-        randInt(0x22, 0xcc),
-        randInt(0x33, 0xff),
-    ];
+    // in quiz mode, .text is an object
 
-    shuffleArray(vals);
+    if (state.mode === MODE_VIEW) {
+        if (state.text !== null && !(state.text in TEXTS)) {
+            state.text = null;
+        }
 
-    return "#" + vals.map(x => x.toString(16).padStart(2, "0")).join("");
-
-    // old algo: since it's random the color is always grey-ish
-    var hex = "#";
-    for (var i = 0; i < 3; i++) {
-        hex += Math.floor(Math.random() * 100).toString().padStart(2, "0");
+        const encoded = state.text !== null ? encodeURIComponent(state.text) : "";
+        newUrl = window.location.pathname + (encoded ? "#" + encoded : "");
+    } else if (state.mode === MODE_QUIZ2) {
+        newUrl = window.location.pathname + "#quiz";
     }
-    return hex;
-}
 
-function prepareId(textId) {
-    hide_options();
-    
-    const text_object = TEXTS[textId];
-    text = text_object.text;
-
-    mode = MODES[document.querySelector('input[type = radio][name = mode]:checked').value];
-
-    document.getElementById("main").innerHTML = "<span style='color: grey;'>點擊開始 ...</span>";
-    document.getElementById("bar-inner").innerText = "";
-    
-    // title
-    document.getElementById("title-textId").innerText = textId;
-    document.getElementById("title-mode").innerText = document.querySelector('input[type = radio][name = mode]:checked').labels[0].innerText;
-
-    bar.set_timer(parseInt(document.getElementById("secs").innerText) * 1000);
-    bar.idle();
-
-    running = true;
-    started = false;
-    
-    if (text_object.long) {
-        document.getElementById("main").classList.add("long");
+    if (replace) {
+        history.replaceState(state, "", newUrl);
+        setup();
     } else {
-        document.getElementById("main").classList.remove("long");
+        history.pushState(state, "", newUrl);
+        setup();
     }
-
-    document.body.requestFullscreen();
-
-    if (document.getElementById("randomize-styles").checked) {
-        const mainStyle = document.getElementById("main").style;
-        mainStyle.color = randomColor();
-        const fontSize = document.getElementById("main").computedStyleMap().get("font-size");
-        mainStyle.fontSize = `${fontSize.value * (randInt(85, 115) / 100)}${fontSize.unit}`;
-    }
-
-    mode.prepare(text_object);
 }
 
-function end() {
+var running = false;
+
+function setup() {
+    // state is changed
+    window.scrollTo(0, 0);
+    exit();
+    if (state.mode === MODE_LANDING) {
+        switchScreen(0);
+        return;
+    }
+    
+    if (state.mode === MODE_VIEW) {
+        switchScreen(1);
+
+        document.getElementById("text-title").innerText = state.text;
+
+        const tmp = document.getElementById("para-list");
+        tmp.innerHTML = "";
+        for (const p in TEXTS[state.text]) {
+            tmp.innerHTML += `
+                <hr>
+                <div class="para-pre">
+                    <span>第${p}段</span>
+                    <div class="para-pre-normal">
+                        <button onclick="startMode2(${p})">背</button>
+                        <button onclick="startQuiz2(${p})">背+</button>
+                        <button onclick="startMode3(${p})">譯</button>
+                    </div>
+                    <div class="para-pre-active">
+                        <button onclick="exit()">退出</button>
+                    </div>
+                </div>
+                <div class="para" data-para="${p}">
+                    ${TEXTS[state.text][p].text}
+                </div>
+                <div class="m3-controls">
+                    <p class="m3-ans"></p>
+                    <button class="m3-btn" onclick="mode3click()"></button>
+                </div>
+            `;
+        }
+    }
+
+    if (state.mode === MODE_QUIZ2) {
+        switchScreen(2);
+        quiz2cnt = 0;
+        quiz2s = Array.from({length: state.text.content.length}, (v, i) => 0);
+
+        document.getElementById("quiz2-title").innerText = state.text.title;
+        document.getElementById("quiz2-text").innerText = "";
+        const btns = document.getElementById("quiz2-buttons");
+        btns.innerHTML = "";
+        let init = shuffle(state.text.content.slice(0, 9));
+        for (let i = 0; i < 9; i++) {
+            const btn = document.createElement("button");
+            btn.innerText = init[i];
+            btn.setAttribute("data-n", String(i));
+            btn.onclick = () => quiz2click(i);
+            btns.appendChild(btn);
+            quiz2s[i] = 1;
+        }
+    }
+}
+
+let quiz2s; // 0 = no; 1 = shown as option
+let quiz2cnt = 0;
+
+function quiz2gen() {
+    let i = quiz2cnt;
+    while (quiz2s[i]) i++;
+    let len = i - quiz2cnt;
+    let sample = new Array();
+
+    while (sample.length < len && i < quiz2s.length) {
+        if (quiz2s[i] == 0) sample.push(i);
+        i++;
+    }
+    // let sample = state.text.content.slice(quiz2cnt + i, quiz2cnt + i * 2);
+    let index = sample[Math.floor(Math.random() * sample.length)];
+    // let chosen = sample[index];
+    quiz2s[index] = 1;
+    return state.text.content[index] ?? "X";
+}
+
+function shuffle(string) {
+    let a = string.split("");
+    let n = a.length;
+
+    for (let i = n - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
+        let tmp = a[i];
+        a[i] = a[j];
+        a[j] = tmp;
+    }
+    return a.join("");
+}
+
+function quiz2click(n) {
+    const btn = document.querySelector(`#quiz2-buttons button[data-n = '${n}']`);
+    if (btn.innerText === state.text.content[quiz2cnt]) {
+        quiz2cnt++;
+        document.getElementById("quiz2-text").innerText += btn.innerText;
+        btn.classList.add("success");
+        const char = quiz2gen(); // pre generated to prevent funny issuess
+        setTimeout(() => {
+            btn.classList.remove("success");
+            btn.innerText = char;
+        }, 300);
+
+        if (quiz2cnt >= state.text.content.length) {
+            document.getElementById("quiz2-buttons").innerHTML = "";
+        }
+    } else {
+        btn.classList.add("failure");
+        setTimeout(() => {
+            btn.classList.remove("failure");
+        }, 300);
+
+    }
+}
+
+function start() {
+    document.querySelectorAll(".para-pre-normal button").forEach(btn => btn.disabled = true);
+    running = true;
+}
+
+function exit() {
+    clearInterval(m2interval);
+    window.removeEventListener("click", mode2click);
+    if (activePara) {
+        activePara.classList.remove("active");
+        activePara.classList.remove("active3");
+        activePara.innerText = TEXTS[state.text][parseInt(activePara.getAttribute("data-para"))].text;
+        activePara = null;
+    }
+
+    document.querySelectorAll(".para-pre-normal button").forEach(btn => btn.disabled = false);
     running = false;
-    bar.stop_timer();
-    mode?.end();
-    mode = null;
 }
 
-function show_options() {
-    document.getElementById("options").style.display = "block";
-    document.getElementById("container").style.display = "none";
-    document.exitFullscreen();
-    window.location.href = "#";
+let m2para = "";
+let m2index = 0;
+let m2time = 0;
+let m2totalTime = 7000;
+let m2interval = null;
+
+let activePara = null;
+
+function startMode2(para) {
+    if (running) return;
+
+    m2index = -1;
+    m2time = 0;
+    m2totalTime = 7000;
+    m2interval = null;
+    m2para = TEXTS[state.text][para].text;
+
+    activePara = document.querySelector(`.para[data-para = "${para}"]`);
+    activePara.classList.add("active");
+    activePara.innerText = "";
+    // document.getElementById("timer-inner").style.width = "100%";
+
+    setTimeout(() => window.addEventListener("click", mode2click), 300);
+
+    start();
+    mode2click();
 }
 
-function hide_options() {
-    document.getElementById("options").style.display = "none";
-    document.getElementById("container").style.display = "flex";
-    window.location.href = "#runner";
-}
+function mode2click() {
+    if (m2index >= m2para.length) {
+        return;
+    }
+    // m2time = Math.min(m2time + 3000, m2totalTime);
+    // if (m2index == 0) {
+    //     m2time = m2totalTime;
+    //     m2interval = setInterval(() => {
+    //         m2time -= 20;
+    //         document.getElementById("timer-inner").style.width = `${m2time / m2totalTime * 100}%`;
+    //         
+    //         if (m2time <= 0) {
+    //             document.getElementById("timer-inner").style.width = "0%";
+    //             clearInterval(m2interval);
+    //             mode2Update();
+    //         }
+    //     }, 20);
+    // }
+    m2index++;
+    activePara.innerHTML = m2para.substring(0, m2index) + "<span style='font-size: 0.75em; color: gray;'>…點擊繼續</span>";
+    if (m2index >= m2para.length) {
+        activePara.classList.add("success");
+        // document.getElementById("timer-inner").style.width = "100%";
 
-function radioChange() {
-    loadTextButtons(document.querySelector('input[type = radio][name = mode]:checked').value == "mode3");
-}
-
-addEventListener(
-    window.matchMedia("(any-hover: none)").matches
-        ? "touchstart" // no hovering = no mouse
-        : "mousedown",
-    () => {
-        if (!running) return
+        let tmp = activePara; // ugly haha
+        setTimeout(() => {
+            tmp.classList.remove("success");
+            running = false;
+        }, 1000);
         
-        if (!started) {
-            // first click
-            if (mode.timer) bar.start_timer();
-            started = true;
-        }
-        
-        bar.time = Math.min(bar.time + 1000, bar.full);
-        mode.advance();
-    }
-);
-
-function isEmpty(obj) {
-    for (const prop in obj) {
-        if (Object.hasOwn(obj, prop)) {
-            return false;
-        }
-    }
-    return true;
-}
-
-function loadTextButtons(special=false) {
-    let div = document.getElementById("text-buttons");
-    while (div.hasChildNodes()) div.removeChild(div.lastChild);
-    let last_prefix = "";
-    for (key in TEXTS) {
-        if (special && isEmpty(TEXTS[key].translations)) continue;
-        let prefix = key.split("-")[0];
-        if (prefix != last_prefix) {
-            last_prefix = prefix;
-            div.appendChild(document.createElement("hr"));
-        }
-        let btn = document.createElement("button");
-        btn.innerText = key;
-        btn.onclick = e => {
-            prepareId(e.target.innerText);
-        }
-        div.appendChild(btn);
+        exit();
     }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+let m3text = "";
+let m3mode = 1; // is showing qs now?
+let m3trans = null;
+let m3data = {};
+let m3controls = null;
 
-    // bar click listener
+function startMode3(para) {
+    if (running) return;
 
-    document.getElementById("bar-inner").onclick = ("click", () => {
-        if (bar.onclick_go_options) {
-            document.getElementById("bar-inner").innerText = "";
-            bar.onclick_go_options = false;
-            show_options();
+    m3text = TEXTS[state.text][para].text;
+    m3mode = 0;
+    m3trans = JSON.parse(JSON.stringify(TEXTS[state.text][para].translations));
+    if (Object.keys(m3trans).length == 0) {
+        alert("Sorry. Translations for this text was not inserted yet!");
+        return;
+    }
+    m3data = {};
+
+    activePara = document.querySelector(`.para[data-para = "${para}"]`);
+    activePara.classList.add("active");
+    activePara.classList.add("active3");
+    m3controls = document.querySelector(`.para[data-para = "${para}"] + .m3-controls`);
+    m3controls.querySelector(".m3-btn").disabled = false;
+
+    start();
+    mode3click(); // simulate
+}
+
+function mode3click() {
+    if (m3mode == 0) {
+        // generate a new question
+        m3controls.querySelector(".m3-ans").innerText = "";
+        m3controls.querySelector(".m3-ans").classList.remove("m3-red-anim");
+        let keys = Object.keys(m3trans);
+        m3data.index = parseInt(keys[Math.floor(keys.length * Math.random())]);
+        [m3data.length, m3data.word] = m3trans[m3data.index];
+        activePara.innerHTML = 
+            m3text.substring(0, m3data.index)
+            + `<span class="m3-red-anim" style="color: red; font-weight: bold;">${m3text.substr(m3data.index, m3data.length)}</span>`
+            + m3text.substring(m3data.index + m3data.length);
+        m3controls.querySelector(".m3-btn").innerText = "揭曉";
+    } else {
+        m3controls.querySelector(".m3-ans").innerText = m3data.word;
+        m3controls.querySelector(".m3-ans").classList.add("m3-red-anim");
+        delete m3trans[m3data.index];
+        m3controls.querySelector(".m3-btn").innerText = "繼續";
+        if (Object.keys(m3trans).length == 0) {
+            m3controls.querySelector(".m3-btn").disabled = true;
         }
-    });
+    }
+    m3mode = 1 - m3mode;
+}
 
-    loadTextButtons();
-    show_options();
+function startQuiz2(para) {
+    const title = `${state.text} 第${para}段`;
+    const content = TEXTS[state.text][para].text;
+    setState({ mode: MODE_QUIZ2, text: {
+        title,
+        content,
+    } });
+}
+
+window.addEventListener("popstate", e => {
+    // when nav is used
+    if (e.state) {
+        state.mode = e.state.mode;
+        state.text = e.state.text;
+    } else {
+        // fallback: derive from hash
+        const h = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : null;
+        state.text = h && h in TEXTS ? h : null;
+        state.mode = state.text === null ? MODE_LANDING : MODE_VIEW;
+    }
+    setup();
 });
 
-window.onhashchange = () => {
-    if (window.location.hash == "") {
-        end();
-        show_options();
+const NUMPAD_MAP = [null, 6, 7, 8, 3, 4, 5, 0, 1, 2];
+
+document.addEventListener("keydown", e => {
+    if (state.mode === MODE_QUIZ2 && e.code.startsWith("Numpad")) {
+        e.preventDefault();
+        let n = NUMPAD_MAP[parseInt(e.code[6])];
+        if (n === null) return;
+        document.querySelector(`#quiz2-buttons button[data-n = '${n}']`).click();
     }
-};
+});
+
+// on direct load, not pushState
+(() => {
+    const h = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : null;
+    if (h && h in TEXTS) {
+        setState({ mode: MODE_VIEW, text: h }, true);
+    } else {
+        setState(state, true);
+    }
+})();
