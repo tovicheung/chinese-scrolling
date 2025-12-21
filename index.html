@@ -197,6 +197,7 @@
                 background-color: transparent;
             }
         }
+        
         .m3-red-anim {
             animation: m3-red 0.3s ease-out forwards;
         }
@@ -208,7 +209,7 @@
         }
 
         .para.active {
-            background-color: rgb(255, 229, 233);
+            background-color: #e7f0ff;
             -webkit-touch-callout: none;
             -webkit-user-select: none;
             -khtml-user-select: none;
@@ -216,6 +217,12 @@
             -ms-user-select: none;
             user-select: none;
         }
+
+        .para.active3 {
+            background-color: rgb(255, 229, 233);
+        }
+
+        .para.active
 
         .para.success {
             background-color: rgb(200, 255, 200);
@@ -272,12 +279,18 @@
 
 <body>
     <div id="screen0" class="screen-active">
-        <h1 style="text-align: center; margin-top: 0px;">DSE 中文 十二篇範文</h1>
-        <p style="text-align: center; margin-top: 0px; margin-bottom: 30px;">更多範文和字解將陸續上載~~</p>
+        <!-- <h1 style="text-align: center; margin: 40px;">DSE 中文 十二篇範文</h1> -->
+
+        <div style="display: flex; flex-direction: row; justify-content: center; margin: 40px;">
+            <img src="assets/banner.png" height="100">
+        </div>
         <div id="card-container"></div>
     </div>
     <div id="screen1">
-        <p style="text-align: center; margin-top: 0px; margin-bottom: 30px;">字訓僅供參考，不保證符合考評局答案</p>
+        <div style="display: flex; flex-direction: row; justify-content: center; align-items: center; margin-bottom: 20px; gap: 40px;">
+            <img src="assets/banner.png" height="40">
+            <p style="text-align: center; margin: 0;">字訓僅供參考，不保證符合考評局答案</p>
+        </div>
         <div class="container">
             <div class="title-bar">
                 <h1 id="text-title"></h1>
@@ -289,7 +302,7 @@
     <div id="screen2">
         <div class="container">
             <h1>背誦: <span id="quiz2-title"></span></h1>
-            <div id="quiz2-text" style="background-color: #e7f0ff; padding: 8px;">TEXT</div>
+            <div id="quiz2-text" style="background-color: #e7f0ff; padding: 8px;"></div>
             <div id="quiz2-buttons"></div>
             <div id="quiz2-done" style="margin-top: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                 <button onclick="history.back()">返回</button>
@@ -446,6 +459,7 @@
 
         if (state.mode === MODE_QUIZ2) {
             switchScreen(2);
+            quiz2cnt = 0;
             quiz2s = Array.from({length: state.text.content.length}, (v, i) => 0);
 
             document.getElementById("quiz2-title").innerText = state.text.title;
