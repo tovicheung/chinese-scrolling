@@ -11,6 +11,8 @@
             background-color: #fcfcfc;
             width: 100%;
             height: 100%;
+            
+            font-family: Arial, Helvetica, sans-serif;
         }
 
         body > div {
@@ -54,13 +56,6 @@
             cursor: pointer;
         }
 
-        @media (max-width: 400px) {
-            .card {
-                width: 100%; 
-                height: 150px;
-            }
-        }
-
         @media (min-width: 600px) {
             .container {
                 box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -69,10 +64,24 @@
                 padding: 20px 30px;
                 border-radius: 6px;
             }
+            
+            .card b {
+                font-size: 1.3em;
+            }
         }
 
-        .card b {
-            font-size: 1.3em;
+        @media (max-width: 599px) {
+            .para {
+                font-size: 1.1em !important;
+            }
+
+            .card {
+                width: 150px;
+            }
+            
+            .card b {
+                font-size: 1.1em;
+            }
         }
 
         .card:hover {
@@ -107,6 +116,30 @@
         
         button.selected {
             background-color: #cee1ff;
+        }
+        
+        button.success {
+            background-color: rgb(159, 255, 159);
+            animation: success-pulse 0.6s ease-out forwards;
+        }
+
+        @keyframes success-pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 rgba(0,0,0,0); }
+            40% { transform: scale(1.04); box-shadow: 0 10px 20px rgba(60,180,60,0.18); }
+            100% { transform: scale(1); box-shadow: 0 0 0 rgba(0,0,0,0); }
+        }
+
+        button.failure {
+            background-color: rgb(255, 200, 200);
+            animation: shake 0.45s cubic-bezier(.36,.07,.19,.97) 0s 1;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            30% { transform: translateX(4px); }
+            50% { transform: translateX(-4px); }
+            70% { transform: translateX(2px); }
+            100% { transform: translateX(0); }
         }
 
         .title-bar {
@@ -169,8 +202,8 @@
         }
 
         .para {
-            padding: 14px;
-            font-size: 1.35em;
+            padding: 14px 6px;
+            font-size: 1.2em;
             margin-top: 8px;
         }
 
@@ -218,6 +251,22 @@
             margin-top: 15px;
             margin-bottom: 15px;
         }
+
+        #quiz2-buttons {
+            display: grid;
+            justify-content: center;
+            grid-template-columns: repeat(3, 50px);
+            gap: 12px;
+            margin: 20px;
+        }
+
+        #quiz2-buttons button {
+            padding: 12px 10px;
+        }
+
+        #quiz2-buttons button:focus {
+            outline: none;
+        }
     </style>
 </head>
 
@@ -232,15 +281,26 @@
         <div class="container">
             <div class="title-bar">
                 <h1 id="text-title"></h1>
-                <button onclick="setState({ text: null })">返回</button>
+                <button onclick="exit(); setState({ mode: MODE_LANDING })">返回</button>
             </div>
             <div id="para-list"></div>
+        </div>
+    </div>
+    <div id="screen2">
+        <div class="container">
+            <h1>背誦: <span id="quiz2-title"></span></h1>
+            <div id="quiz2-text" style="background-color: #e7f0ff; padding: 8px;">TEXT</div>
+            <div id="quiz2-buttons"></div>
+            <div id="quiz2-done" style="margin-top: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <button onclick="history.back()">返回</button>
+            </div>
+            <p style="color: gray; text-align: center;">Tip: numpad can be used!</p>
         </div>
     </div>
     <div id="screen404">
         <div class="container">
             <h1>Not Found</h1>
-            <button onclick="switchScreen(0)">Back</button>
+            <button onclick="setState({ mode: MODE_LANDING })">Back</button>
         </div>
     </div>
 </body>
@@ -257,7 +317,14 @@
         }
     }
 
-    var state = { text: null }
+    const MODE_LANDING = 0;
+    const MODE_VIEW = 1;
+    const MODE_QUIZ2 = 2;
+
+    var state = {
+        mode: MODE_LANDING,
+        text: null,
+    };
 
     const ORDER = [
         "論仁",
@@ -299,34 +366,37 @@
             }
         }
         document.getElementById("card-container").innerHTML += `
-            <div class="card" style="background-color: ${color}" onclick="setState({ text: '${name}' })">
+            <div class="card" style="background-color: ${color}" onclick="setState({ mode: ${MODE_VIEW}, text: '${name}' })">
                 <b>${name}</b>
             </div>
         `;
     }
 
     function setState(newState, replace = false) {
-        state.text = newState.text ?? null;
-        if (state.text !== null && !(state.text in TEXTS)) {
-            state.text = null;
-        }
-        
-        const url = new URL(window.location.href);
-        url.search = "";
-        for (const [k, v] of Object.entries(state)) {
-            url.searchParams.set(k, String(v));
-        }
+        console.log("setstate", newState);
+        state.mode = newState.mode;
+        state.text = state.mode === MODE_LANDING ? null : newState.text;
 
-        let fullUrl = url.pathname;
-        if (state.text !== null) {
-            fullUrl += url.search ? "?" + url.searchParams.toString() : "";
+        let newUrl = window.location.pathname;
+
+        // in quiz mode, .text is an object
+
+        if (state.mode === MODE_VIEW) {
+            if (state.text !== null && !(state.text in TEXTS)) {
+                state.text = null;
+            }
+
+            const encoded = state.text !== null ? encodeURIComponent(state.text) : "";
+            newUrl = window.location.pathname + (encoded ? "#" + encoded : "");
+        } else if (state.mode === MODE_QUIZ2) {
+            newUrl = window.location.pathname + "#quiz";
         }
 
         if (replace) {
-            history.replaceState(state, "", fullUrl);
+            history.replaceState(state, "", newUrl);
             setup();
         } else {
-            history.pushState(state, "", fullUrl);
+            history.pushState(state, "", newUrl);
             setup();
         }
     }
@@ -335,38 +405,119 @@
 
     function setup() {
         // state is changed
-        if (state.text === null) {
+        window.scrollTo(0, 0);
+        exit();
+        if (state.mode === MODE_LANDING) {
             switchScreen(0);
             return;
         }
-        switchScreen(1);
-        exit();
+        
+        if (state.mode === MODE_VIEW) {
+            switchScreen(1);
 
-        document.getElementById("text-title").innerText = state.text;
+            document.getElementById("text-title").innerText = state.text;
 
-        const tmp = document.getElementById("para-list");
-        tmp.innerHTML = "";
-        for (const p in TEXTS[state.text]) {
-            tmp.innerHTML += `
-                <hr>
-                <div class="para-pre">
-                    <span>第${p}段</span>
-                    <div class="para-pre-normal">
-                        <button onclick="startMode2(${p})">背</button>
-                        <button onclick="startMode3(${p})">譯</button>
+            const tmp = document.getElementById("para-list");
+            tmp.innerHTML = "";
+            for (const p in TEXTS[state.text]) {
+                tmp.innerHTML += `
+                    <hr>
+                    <div class="para-pre">
+                        <span>第${p}段</span>
+                        <div class="para-pre-normal">
+                            <button onclick="startMode2(${p})">背</button>
+                            <button onclick="startQuiz2(${p})">背+</button>
+                            <button onclick="startMode3(${p})">譯</button>
+                        </div>
+                        <div class="para-pre-active">
+                            <button onclick="exit()">退出</button>
+                        </div>
                     </div>
-                    <div class="para-pre-active">
-                        <button onclick="exit()">退出</button>
+                    <div class="para" data-para="${p}">
+                        ${TEXTS[state.text][p].text}
                     </div>
-                </div>
-                <div class="para" data-para="${p}">
-                    ${TEXTS[state.text][p].text}
-                </div>
-                <div class="m3-controls">
-                    <p class="m3-ans"></p>
-                    <button class="m3-btn" onclick="mode3click()"></button>
-                </div>
-            `;
+                    <div class="m3-controls">
+                        <p class="m3-ans"></p>
+                        <button class="m3-btn" onclick="mode3click()"></button>
+                    </div>
+                `;
+            }
+        }
+
+        if (state.mode === MODE_QUIZ2) {
+            switchScreen(2);
+            quiz2s = Array.from({length: state.text.content.length}, (v, i) => 0);
+
+            document.getElementById("quiz2-title").innerText = state.text.title;
+            document.getElementById("quiz2-text").innerText = "";
+            const btns = document.getElementById("quiz2-buttons");
+            btns.innerHTML = "";
+            let init = shuffle(state.text.content.slice(0, 9));
+            for (let i = 0; i < 9; i++) {
+                const btn = document.createElement("button");
+                btn.innerText = init[i];
+                btn.setAttribute("data-n", String(i));
+                btn.onclick = () => quiz2click(i);
+                btns.appendChild(btn);
+                quiz2s[i] = 1;
+            }
+        }
+    }
+
+    let quiz2s; // 0 = no; 1 = shown as option
+    let quiz2cnt = 0;
+
+    function quiz2gen() {
+        let i = quiz2cnt;
+        while (quiz2s[i]) i++;
+        let len = i - quiz2cnt;
+        let sample = new Array();
+
+        while (sample.length < len && i < quiz2s.length) {
+            if (quiz2s[i] == 0) sample.push(i);
+            i++;
+        }
+        // let sample = state.text.content.slice(quiz2cnt + i, quiz2cnt + i * 2);
+        let index = sample[Math.floor(Math.random() * sample.length)];
+        // let chosen = sample[index];
+        quiz2s[index] = 1;
+        return state.text.content[index] ?? "X";
+    }
+
+    function shuffle(string) {
+        let a = string.split("");
+        let n = a.length;
+
+        for (let i = n - 1; i > 0; i--) {
+            let j = Math.floor(Math.random() * (i + 1));
+            let tmp = a[i];
+            a[i] = a[j];
+            a[j] = tmp;
+        }
+        return a.join("");
+    }
+    
+    function quiz2click(n) {
+        const btn = document.querySelector(`#quiz2-buttons button[data-n = '${n}']`);
+        if (btn.innerText === state.text.content[quiz2cnt]) {
+            quiz2cnt++;
+            document.getElementById("quiz2-text").innerText += btn.innerText;
+            btn.classList.add("success");
+            const char = quiz2gen(); // pre generated to prevent funny issuess
+            setTimeout(() => {
+                btn.classList.remove("success");
+                btn.innerText = char;
+            }, 300);
+
+            if (quiz2cnt >= state.text.content.length) {
+                document.getElementById("quiz2-buttons").innerHTML = "";
+            }
+        } else {
+            btn.classList.add("failure");
+            setTimeout(() => {
+                btn.classList.remove("failure");
+            }, 300);
+
         }
     }
 
@@ -382,6 +533,7 @@
             activePara.classList.remove("active");
             activePara.classList.remove("active3");
             activePara.innerText = TEXTS[state.text][parseInt(activePara.getAttribute("data-para"))].text;
+            activePara = null;
         }
 
         document.querySelectorAll(".para-pre-normal button").forEach(btn => btn.disabled = false);
@@ -437,14 +589,16 @@
         m2index++;
         activePara.innerHTML = m2para.substring(0, m2index) + "<span style='font-size: 0.75em; color: gray;'>…點擊繼續</span>";
         if (m2index >= m2para.length) {
-            exit();
             activePara.classList.add("success");
             // document.getElementById("timer-inner").style.width = "100%";
 
+            let tmp = activePara; // ugly haha
             setTimeout(() => {
-                activePara.classList.remove("success");
+                tmp.classList.remove("success");
                 running = false;
             }, 1000);
+            
+            exit();
         }
     }
 
@@ -501,22 +655,58 @@
         m3mode = 1 - m3mode;
     }
 
+    function startQuiz2(para) {
+        const title = `${state.text} 第${para}段`;
+        const content = TEXTS[state.text][para].text;
+        setState({ mode: MODE_QUIZ2, text: {
+            title,
+            content,
+        } });
+    }
 
     window.addEventListener("popstate", e => {
         // when nav is used
-        if (e.state && e.state.text) {
+        console.log("popstate", e.state);
+        if (e.state) {
+            state.mode = e.state.mode;
             state.text = e.state.text;
         } else {
-            state = { text: null };
+            console.log("popstate else");
+            // fallback: derive from hash
+            const h = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : null;
+            state.text = h && h in TEXTS ? h : null;
+            state.mode = state.text === null ? MODE_LANDING : MODE_VIEW;
         }
         setup();
     });
 
+    window.addEventListener("hashchange", () => {
+        // managed by state stack so ok
+        // const h = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : null;
+        // if (h === "quiz") {
+        //     // ignore for now
+        //     // will just redirect back to landing
+        // }
+        // setState({ mode: h === "quiz" ? MODE_QUIZ2 : h in TEXTS ? MODE_VIEW : MODE_LANDING, text: h }, true);
+    });
+
+    const NUMPAD_MAP = [null, 6, 7, 8, 3, 4, 5, 0, 1, 2];
+
+    document.addEventListener("keydown", e => {
+        console.log(e);
+        if (state.mode === MODE_QUIZ2 && e.code.startsWith("Numpad")) {
+            e.preventDefault();
+            let n = NUMPAD_MAP[parseInt(e.code[6])];
+            if (n === null) return;
+            document.querySelector(`#quiz2-buttons button[data-n = '${n}']`).click();
+        }
+    });
+
     // on direct load, not pushState
     (() => {
-        const params = new URLSearchParams(window.location.search);
-        if (params.has("text")) {
-            setState({ text: params.get("text") }, true);
+        const h = window.location.hash ? decodeURIComponent(window.location.hash.slice(1)) : null;
+        if (h && h in TEXTS) {
+            setState({ mode: MODE_VIEW, text: h }, true);
         } else {
             setState(state, true);
         }
