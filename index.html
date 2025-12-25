@@ -154,9 +154,11 @@
             margin-bottom: 0;
         }
         
-        #timer-outer {
+        #quiz2-timer {
+            width: 174px;
             height: 10px;
             border-radius: 999px;
+            margin: auto;
             margin-bottom: 16px;
             background-color: rgb(236, 98, 98);
             display: flex;
@@ -164,7 +166,7 @@
             justify-content: flex-start;
         }
 
-        #timer-inner {
+        #quiz2-timer-inner {
             height: 100%;
             border-radius: 999px;
             background-color: rgb(60, 194, 60);
@@ -274,6 +276,19 @@
         #quiz2-buttons button:focus {
             outline: none;
         }
+
+        #quiz2-text > span {
+            display: inline-block;
+            width: 1.25ch;
+            height: 1em;
+            vertical-align: middle;
+            animation: cursor-pulse 1.2s ease-in-out infinite;
+        }
+
+        @keyframes cursor-pulse {
+            0%, 100% { background-color: #8fc0ff; }
+            50% { background-color: #6dacff; }
+        }
     </style>
 </head>
 
@@ -304,6 +319,9 @@
             <h1>背誦: <span id="quiz2-title"></span></h1>
             <div id="quiz2-text" style="background-color: #e7f0ff; padding: 8px;"></div>
             <div id="quiz2-buttons"></div>
+            <div id="quiz2-timer">
+                <div id="quiz2-timer-inner"></div>
+            </div>
             <div id="quiz2-done" style="margin-top: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
                 <button onclick="history.back()">返回</button>
             </div>
