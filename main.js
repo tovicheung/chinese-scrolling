@@ -139,12 +139,12 @@ function setup() {
 
     if (state.mode === MODE_QUIZ2) {
         switchScreen(2);
-        document.getElementById("quiz2-timer-inner").style.width = "100%";
+        // document.getElementById("quiz2-timer-inner").style.width = "100%";
         quiz2cnt = 0;
         quiz2s = Array.from({length: state.text.content.length}, (v, i) => 0);
 
         document.getElementById("quiz2-title").innerText = state.text.title;
-        document.getElementById("quiz2-text").innerHTML = "<span></span>";
+        document.getElementById("quiz2-text").innerHTML = `<span>${state.text.content}</span>`;
         const btns = document.getElementById("quiz2-buttons");
         btns.innerHTML = "";
         let init = shuffle(state.text.content.slice(0, 9));
@@ -196,7 +196,7 @@ function quiz2click(n) {
     const btn = document.querySelector(`#quiz2-buttons button[data-n = '${n}']`);
     if (btn.innerText === state.text.content[quiz2cnt]) {
         quiz2cnt++;
-        document.getElementById("quiz2-text").innerHTML = state.text.content.slice(0, quiz2cnt) + "<span></span>";
+        document.getElementById("quiz2-text").innerHTML = state.text.content.slice(0, quiz2cnt) + `<span>${state.text.content.slice(quiz2cnt)}</span>`;
         btn.classList.add("success");
         const char = quiz2gen(); // pre generated to prevent funny issuess
         setTimeout(() => {
