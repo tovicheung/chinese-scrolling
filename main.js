@@ -13,6 +13,7 @@ function switchScreen(n) {
 const MODE_LANDING = 0;
 const MODE_VIEW = 1;
 const MODE_QUIZ2 = 2;
+const MODE_PRE_QUIZ = 5;
 
 var state = {
     mode: MODE_LANDING,
@@ -156,6 +157,10 @@ function setup() {
             btns.appendChild(btn);
             quiz2s[i] = 1;
         }
+    }
+
+    if (state.mode === MODE_PRE_QUIZ) {
+        switchScreen(5);
     }
 }
 
